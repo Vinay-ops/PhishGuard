@@ -1,10 +1,7 @@
 """
 Scanner Route
 =============
-POST /analyze — the main URL analysis endpoint.
-
-Pipeline:
-    URL input → validation → feature extraction → security rules → risk calculation → JSON response
+POST /api/v1/analyze — the main URL analysis endpoint.
 """
 
 import json
@@ -58,7 +55,7 @@ def analyze(request: AnalyzeRequest, db: Session = Depends(get_db)):
             detail="An error occurred during URL analysis.",
         )
 
-    # Persist to database (best-effort — analysis succeeds even if DB fails).
+    # Persist to database (best-effort).
     try:
         record = ScanRecord(
             url=result["url"],

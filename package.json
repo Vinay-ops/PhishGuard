@@ -1,0 +1,27 @@
+{
+  "name": "phishguard",
+  "version": "0.2.0",
+  "private": true,
+  "description": "Phishing URL Detection & Security Analyzer — full-stack project",
+  "workspaces": [],
+  "scripts": {
+    "dev": "npm --prefix frontend run dev",
+    "dev:frontend": "npm --prefix frontend run dev",
+    "dev:backend": "cd backend && uvicorn app.main:app --reload",
+    "build": "npm --prefix frontend run build",
+    "preview": "npm --prefix frontend run preview",
+    "lint": "npm --prefix frontend run lint",
+    "frontend": "npm --prefix frontend",
+    "vercel-build": "npm --prefix frontend run build",
+    "postinstall": "npm --prefix frontend install"
+  },
+  "keywords": [
+    "phishing",
+    "security",
+    "fastapi",
+    "react",
+    "vite",
+    "onnx"
+  ],
+  "license": "MIT"
+}

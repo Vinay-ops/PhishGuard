@@ -6,14 +6,15 @@
 //
 // To run the backend locally (from the backend/ folder):
 //     python main.py        # serves http://127.0.0.1:8000
+//     uvicorn app.main:app --reload --port 8000
 // ---------------------------------------------------------------------------
 
 import axios from 'axios'
 
 // Centralized API base URL: read from .env (VITE_API_BASE_URL) with a
-// development fallback so the app works out of the box.
+// fallback for same-domain Vercel production (/api/v1) and local dev.
 const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL ?? 'http://127.0.0.1:8000'
+  import.meta.env.VITE_API_BASE_URL || '/api/v1'
 
 /** Shared Axios instance with a default timeout. */
 const api = axios.create({

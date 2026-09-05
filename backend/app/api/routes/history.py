@@ -1,8 +1,9 @@
 """
 History Route
 =============
-GET /history — retrieve scan history with search, filtering, and pagination.
-DELETE /history/{id} — delete a scan record.
+GET /api/v1/history — retrieve scan history with search, filtering, and pagination.
+GET /api/v1/history/{id} — retrieve a single scan record.
+DELETE /api/v1/history/{id} — delete a scan record.
 """
 
 import math
@@ -23,11 +24,6 @@ router = APIRouter()
 def get_history_record(record_id: int, db: Session = Depends(get_db)):
     """
     Retrieve a single stored scan record by ID.
-
-    Returns the exact analysis result that was persisted at scan time
-    (classification, risk score, confidence, detected indicators, summary
-    and original scan timestamp). The ML model is NOT re-run — this only
-    reads the stored record.
     """
     record = (
         db.query(ScanRecord).filter(ScanRecord.id == record_id).first()

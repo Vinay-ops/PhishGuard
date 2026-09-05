@@ -1,8 +1,8 @@
 """
 Dashboard Route
 ===============
-GET /dashboard — return summary statistics for the security dashboard.
-GET /dashboard/trends — return daily average risk scores for the last 7 days.
+GET /api/v1/dashboard — return summary statistics for the security dashboard.
+GET /api/v1/dashboard/trends — return daily average risk scores for the last 7 days.
 """
 
 from datetime import datetime, timedelta, timezone
