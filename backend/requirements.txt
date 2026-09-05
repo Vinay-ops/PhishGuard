@@ -1,0 +1,16 @@
+# PhishGuard backend dependencies
+# Install with:  pip install -r requirements.txt
+
+# Core
+fastapi
+uvicorn
+
+# Database
+sqlalchemy
+
+# URL parsing
+tldextract
+
+# ML inference
+onnxruntime
+numpy

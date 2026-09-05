@@ -1,0 +1,250 @@
+/* ==========================================================================
+   Security Dashboard styles (imported after index.css in main.jsx)
+   ========================================================================== */
+
+/* --- Dashboard header ------------------------------------------------------ */
+.dashboard-header {
+  padding: 44px 0 28px;
+}
+
+@media (max-width: 767.98px) {
+  .dashboard-header {
+    padding: 32px 0 20px;
+  }
+}
+
+.dashboard-header .section-title {
+  font-size: clamp(1.9rem, 3.2vw, 2.6rem);
+}
+
+/* --- Segmented date filter -------------------------------------------------- */
+.seg-control {
+  padding: 0.25rem;
+  border-radius: 50rem;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--bs-border-color);
+}
+
+.seg-chip {
+  display: inline-flex;
+  align-items: center;
+  border: 0;
+  background: transparent;
+  color: #93a5bf;
+  font-weight: 600;
+  font-size: 0.85rem;
+  padding: 0.45rem 1rem;
+  border-radius: 50rem;
+  white-space: nowrap;
+  transition: color 0.15s ease, background-color 0.15s ease;
+}
+
+.seg-chip:hover:not(.active) {
+  color: #e6eefb;
+}
+
+.seg-chip.active {
+  background: var(--grad-brand);
+  color: #fff;
+  box-shadow: 0 6px 16px -6px rgba(14, 165, 233, 0.65);
+}
+
+@media (max-width: 399.98px) {
+  .seg-chip i {
+    display: none;
+  }
+}
+
+/* --- Statistic cards -------------------------------------------------------- */
+.stat-value {
+  font-size: clamp(1.9rem, 2.6vw, 2.5rem);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  color: var(--pg-heading);
+}
+
+.stat-label {
+  color: var(--bs-secondary-color);
+  font-weight: 500;
+}
+
+.trend-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* Extra icon-tile gradients used by stat + insight cards */
+.icon-tile-emerald {
+  background: linear-gradient(135deg, #34d399, #059669);
+  box-shadow: 0 12px 24px -10px rgba(52, 211, 153, 0.5);
+}
+
+.icon-tile-red {
+  background: linear-gradient(135deg, #f87171, #dc2626);
+  box-shadow: 0 12px 24px -10px rgba(248, 113, 113, 0.5);
+}
+
+/* --- Charts ----------------------------------------------------------------- */
+.chart-donut-wrap {
+  position: relative;
+  width: min(230px, 100%);
+  height: 230px;
+}
+
+.chart-center {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.15rem;
+  pointer-events: none;
+}
+
+.chart-center-value {
+  font-size: 1.7rem;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--pg-heading);
+}
+
+.chart-center-label {
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #8296b3;
+}
+
+.chart-line-wrap {
+  position: relative;
+  width: 100%;
+  height: 280px;
+}
+
+.chart-line-caption {
+  color: var(--bs-secondary-color);
+  font-size: 0.85rem;
+}
+
+/* Legend used by the doughnut chart */
+.legend-list li {
+  padding: 0.85rem 0;
+  border-bottom: 1px dashed rgba(148, 163, 184, 0.14);
+}
+
+.legend-list li:first-child {
+  padding-top: 0;
+}
+
+.legend-list li:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+.legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.legend-label {
+  color: #c3d0e2;
+  font-weight: 500;
+}
+
+.legend-value {
+  font-weight: 800;
+  font-size: 1.05rem;
+  color: var(--pg-heading);
+}
+
+/* --- Recent scans table ----------------------------------------------------- */
+.recent-table-wrap {
+  margin: 0 -0.5rem;
+}
+
+.recent-table thead th {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #8296b3;
+  border-bottom: 1px solid var(--bs-border-color);
+  white-space: nowrap;
+  padding: 0.6rem 0.5rem;
+}
+
+.recent-table tbody td {
+  color: #c6d3e6;
+  border-color: rgba(148, 163, 184, 0.1);
+  padding: 0.9rem 0.5rem;
+}
+
+.recent-table tbody tr:hover td {
+  background-color: rgba(56, 189, 248, 0.03);
+}
+
+.url-cell {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.85rem;
+  color: #e6edf8;
+  max-width: 300px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+.url-cell i {
+  color: #8296b3;
+  flex-shrink: 0;
+}
+
+.risk-cell {
+  font-weight: 700;
+  font-size: 0.95rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.date-cell {
+  color: #93a5bf;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.action-view {
+  color: #7cc2ff;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.9rem;
+  white-space: nowrap;
+}
+
+.action-view:hover {
+  color: #a8d7ff;
+  text-decoration: underline;
+}
+
+/* --- Insight cards ---------------------------------------------------------- */
+.insight-value {
+  font-size: clamp(1.05rem, 1.4vw, 1.3rem);
+  font-weight: 700;
+  line-height: 1.35;
+  color: var(--pg-heading);
+}
+
+.min-w-0 {
+  min-width: 0;
+}
