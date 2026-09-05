@@ -93,6 +93,9 @@ class AnalyzeResponse(BaseModel):
     features: UrlFeatures
     ml_analysis: MlAnalysis
     rules: List[SecurityIndicator] = []
+    tls_analysis: dict = {}
+    header_analysis: dict = {}
+    risk_breakdown: dict = {}
 
 
 class ScanRecordResponse(BaseModel):
@@ -106,6 +109,7 @@ class ScanRecordResponse(BaseModel):
     detected_indicators: Optional[str] = None
     summary: Optional[str] = None
     scanned_at: Optional[str] = None
+    security_analysis: Optional[str] = None
 
 
 class HistoryResponse(BaseModel):
@@ -143,6 +147,7 @@ class ScanRecordDetailResponse(BaseModel):
     detected_indicators: Optional[str] = None
     summary: Optional[str] = None
     scanned_at: Optional[str] = None
+    security_analysis: Optional[str] = None
 
 
 class TrendResponse(BaseModel):

@@ -1060,6 +1060,52 @@ a:hover > .brand-logo-text {
   --s-border: rgba(251, 191, 36, 0.32);
 }
 
+/* --- Security analysis details ------------------------------------------ */
+.risk-component-card {
+  border-color: rgba(56, 189, 248, 0.18);
+}
+
+.risk-weight {
+  color: var(--pg-sky);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.risk-component-score {
+  color: var(--pg-heading);
+  font-size: 1.55rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.security-detail-grid {
+  display: grid;
+  grid-template-columns: minmax(5.5rem, 0.7fr) 1.3fr;
+  gap: 0.85rem 1rem;
+  color: var(--pg-text);
+  font-size: 0.9rem;
+}
+
+.security-detail-grid strong {
+  color: var(--pg-heading);
+  overflow-wrap: anywhere;
+  text-align: right;
+}
+
+.security-header-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.65rem 0;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+  color: var(--pg-text);
+  font-size: 0.9rem;
+}
+
+.security-header-list li:last-child {
+  border-bottom: 0;
+}
+
 .summary-icon {
   font-size: 2rem;
   color: var(--s-main);

@@ -45,6 +45,9 @@ function normalizeAnalysisResult(data) {
       safe_probability: null,
       error: null,
     },
+    tlsAnalysis: data.tls_analysis ?? {},
+    headerAnalysis: data.header_analysis ?? {},
+    riskBreakdown: data.risk_breakdown ?? {},
   }
 }
 
@@ -72,6 +75,16 @@ function normalizeHistoricalRecord(record) {
       detectedIndicators = []
     }
   }
+  let securityAnalysis = {}
+  if (record.security_analysis) {
+    try {
+      securityAnalysis = typeof record.security_analysis === 'string'
+        ? JSON.parse(record.security_analysis)
+        : record.security_analysis
+    } catch {
+      securityAnalysis = {}
+    }
+  }
   return {
     url: record.url,
     classification: record.classification,
@@ -89,6 +102,9 @@ function normalizeHistoricalRecord(record) {
       error: 'ML details were not stored with this historical record.',
     },
     rules: [],
+    tlsAnalysis: securityAnalysis.tls_analysis ?? {},
+    headerAnalysis: securityAnalysis.header_analysis ?? {},
+    riskBreakdown: securityAnalysis.risk_breakdown ?? {},
     scannedAt: record.scanned_at ? new Date(record.scanned_at) : null,
     isHistorical: true,
   }

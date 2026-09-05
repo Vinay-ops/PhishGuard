@@ -32,6 +32,22 @@ const FEATURE_LABELS = {
 // Keys to skip in the features display (internal/not useful to show).
 const FEATURE_SKIP = new Set(['hostname', 'path', 'query_present'])
 
+const RISK_COMPONENTS = [
+  ['ml', 'Machine learning'],
+  ['url_rules', 'URL rules'],
+  ['tls', 'TLS / SSL'],
+  ['headers', 'HTTP headers'],
+]
+
+const HEADER_LABELS = {
+  'Strict-Transport-Security': 'Strict-Transport-Security',
+  'Content-Security-Policy': 'Content-Security-Policy',
+  'X-Frame-Options': 'X-Frame-Options',
+  'X-Content-Type-Options': 'X-Content-Type-Options',
+  'Referrer-Policy': 'Referrer-Policy',
+  'Permissions-Policy': 'Permissions-Policy',
+}
+
 function AnalysisResultPage() {
   const location = useLocation()
   const navigate = useNavigate()
@@ -169,6 +185,9 @@ function AnalysisResultPage() {
   const features = result.features ?? {}
   const summary = result.summary || result.message || ''
   const mlAnalysis = result.mlAnalysis ?? {}
+  const tlsAnalysis = result.tlsAnalysis ?? {}
+  const headerAnalysis = result.headerAnalysis ?? {}
+  const riskBreakdown = result.riskBreakdown ?? {}
 
   const handleCopy = async () => {
     try {
@@ -331,7 +350,7 @@ function AnalysisResultPage() {
               <h2 className="result-section-title mt-2">Machine Learning Analysis</h2>
               <p className="result-section-sub mx-auto">
                 {mlAnalysis.available
-                  ? 'ONNX model prediction from pirocheto/phishing-url-detection.'
+                  ? 'The ONNX model provides a probabilistic interpretation, not absolute proof of intent.'
                   : 'ML model is currently unavailable. Rule-based analysis is still active.'}
               </p>
             </div>
@@ -455,6 +474,100 @@ function AnalysisResultPage() {
         </div>
       </section>
 
+      {/* ---- Security risk breakdown ------------------------------------ */}
+      <section className="pb-5">
+        <div className="container">
+          <div className="row justify-content-center text-center mb-4">
+            <div className="col-12 col-lg-8">
+              <span className="section-eyebrow">Weighted Decision</span>
+              <h2 className="result-section-title mt-2">Security Risk Breakdown</h2>
+              <p className="result-section-sub mx-auto">
+                The final score combines four independent signals. Higher component scores indicate more risk.
+              </p>
+            </div>
+          </div>
+          <div className="row g-3 justify-content-center">
+            {RISK_COMPONENTS.map(([key, label]) => {
+              const component = riskBreakdown[key] ?? {}
+              const score = component.score ?? 0
+              return (
+                <div className="col-12 col-sm-6 col-lg-3" key={key}>
+                  <div className="card pg-card p-3 risk-component-card h-100">
+                    <div className="d-flex justify-content-between align-items-start gap-2">
+                      <span className="kv-label">{label}</span>
+                      <span className="risk-weight">{component.weight ?? 0}%</span>
+                    </div>
+                    <strong className="risk-component-score mt-2">{score}/100</strong>
+                    <div className="progress pg-progress mt-2" role="presentation">
+                      <div className="progress-bar bg-warning" style={{ width: `${score}%` }}></div>
+                    </div>
+                    {!component.available && <small className="text-secondary mt-2">Unavailable</small>}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* ---- TLS and HTTP security -------------------------------------- */}
+      <section className="pb-5">
+        <div className="container">
+          <div className="row g-4 justify-content-center">
+            <div className="col-12 col-lg-6">
+              <div className="card pg-card p-4 h-100">
+                <div className="d-flex justify-content-between align-items-center mb-3">
+                  <div>
+                    <span className="section-eyebrow">Transport</span>
+                    <h2 className="result-section-title mt-2 mb-0">TLS / SSL Security</h2>
+                  </div>
+                  <span className={`status-badge ${tlsAnalysis.available ? 'tone-success' : 'tone-warning'}`}>
+                    {tlsAnalysis.available ? `${tlsAnalysis.score}/100` : 'UNAVAILABLE'}
+                  </span>
+                </div>
+                {tlsAnalysis.certificate ? (
+                  <div className="security-detail-grid">
+                    <span>Protocol</span><strong>{tlsAnalysis.version || 'Unknown'}</strong>
+                    <span>Issuer</span><strong>{tlsAnalysis.certificate.issuer}</strong>
+                    <span>Subject</span><strong>{tlsAnalysis.certificate.subject}</strong>
+                    <span>Valid until</span><strong>{tlsAnalysis.certificate.not_after || 'Unknown'}</strong>
+                  </div>
+                ) : (
+                  <p className="text-secondary mb-0">{tlsAnalysis.error || 'No certificate details were returned.'}</p>
+                )}
+              </div>
+            </div>
+            <div className="col-12 col-lg-6">
+              <div className="card pg-card p-4 h-100">
+                <div className="d-flex justify-content-between align-items-center mb-3">
+                  <div>
+                    <span className="section-eyebrow">Application</span>
+                    <h2 className="result-section-title mt-2 mb-0">HTTP Security Headers</h2>
+                  </div>
+                  <span className={`status-badge ${headerAnalysis.available ? 'tone-success' : 'tone-warning'}`}>
+                    {headerAnalysis.available ? `${headerAnalysis.score}/100` : 'UNAVAILABLE'}
+                  </span>
+                </div>
+                <ul className="list-unstyled mb-0 security-header-list">
+                  {Object.entries(HEADER_LABELS).map(([key, label]) => {
+                    const present = Boolean(headerAnalysis.headers?.[key])
+                    return (
+                      <li key={key}>
+                        <span>{label}</span>
+                        <span className={`status-badge ${present ? 'tone-success' : 'tone-danger'}`}>
+                          {present ? 'PRESENT' : 'MISSING'}
+                        </span>
+                      </li>
+                    )
+                  })}
+                </ul>
+                {!headerAnalysis.available && <small className="text-secondary d-block mt-3">{headerAnalysis.error || 'Header request was unavailable.'}</small>}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* ---- Detected Indicators ----------------------------------------- */}
       <section className="pb-5">
         <div className="container">
@@ -541,8 +654,8 @@ function AnalysisResultPage() {
                         <li className="rule-row" key={rule.rule}>
                           <i className={`bi ${rIcon} tone-${rTone}`} aria-hidden="true"></i>
                           <span className="flex-grow-1">{rule.rule}</span>
-                          <span className={`status-badge tone-${rTone}`}>
-                            {rule.detected ? 'FLAGGED' : 'PASSED'}
+                          <span className={`status-badge tone-${rTone}`} title={rule.description}>
+                            {rule.detected ? rule.severity.toUpperCase() : 'LOW RISK'}
                           </span>
                         </li>
                       )

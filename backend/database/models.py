@@ -22,6 +22,7 @@ class ScanRecord(Base):
     confidence = Column(Integer, nullable=False)
     message = Column(Text, nullable=True)
     detected_indicators = Column(Text, nullable=True)  # JSON string
+    security_analysis = Column(Text, nullable=True)  # JSON string
     summary = Column(Text, nullable=True)
     scanned_at = Column(
         DateTime,
@@ -39,6 +40,7 @@ class ScanRecord(Base):
             "confidence": self.confidence,
             "message": self.message,
             "detected_indicators": self.detected_indicators,
+            "security_analysis": self.security_analysis,
             "summary": self.summary,
             "scanned_at": self.scanned_at.isoformat() if self.scanned_at else None,
         }

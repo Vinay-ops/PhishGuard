@@ -5,7 +5,7 @@ SQLite database connection and session management using SQLAlchemy.
 """
 
 import os
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, inspect, text
 from sqlalchemy.orm import sessionmaker, declarative_base
 
 # Database file path relative to the backend directory.
@@ -41,3 +41,7 @@ def init_db():
     # Import models so Base.metadata knows about them.
     from database import models  # noqa: F401
     Base.metadata.create_all(bind=engine)
+    columns = {column["name"] for column in inspect(engine).get_columns("scan_records")}
+    if "security_analysis" not in columns:
+        with engine.begin() as connection:
+            connection.execute(text("ALTER TABLE scan_records ADD COLUMN security_analysis TEXT"))

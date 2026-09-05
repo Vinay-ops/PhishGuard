@@ -13,6 +13,7 @@ from database.database import get_db
 from database.models import ScanRecord
 from database.schemas import AnalyzeRequest, AnalyzeResponse
 from services.risk_engine import analyze_url
+from services.ssrf_protector import SSRFViolation
 
 router = APIRouter()
 
@@ -49,6 +50,8 @@ def analyze(request: AnalyzeRequest, db: Session = Depends(get_db)):
     # Run the analysis pipeline.
     try:
         result = analyze_url(url)
+    except SSRFViolation as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
     except Exception:
         raise HTTPException(
             status_code=500,
@@ -65,6 +68,11 @@ def analyze(request: AnalyzeRequest, db: Session = Depends(get_db)):
             message=result.get("message", ""),
             detected_indicators=json.dumps(result.get("detected_indicators", [])),
             summary=result.get("summary", ""),
+            security_analysis=json.dumps({
+                "tls_analysis": result.get("tls_analysis", {}),
+                "header_analysis": result.get("header_analysis", {}),
+                "risk_breakdown": result.get("risk_breakdown", {}),
+            }),
         )
         db.add(record)
         db.commit()
