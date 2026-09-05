@@ -42,7 +42,7 @@ function AnalysisResultPage() {
   const paramId = searchParams.get('id')
 
   const [result, setResult] = useState(liveResult || null)
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(() => !liveResult && Boolean(paramUrl || paramId))
   const [error, setError] = useState(null)
   const [copied, setCopied] = useState(false)
   const [featuresOpen, setFeaturesOpen] = useState(false)
@@ -57,8 +57,6 @@ function AnalysisResultPage() {
     // Historical record: load the stored result without re-running analysis.
     if (paramId) {
       let cancelled = false
-      setLoading(true)
-      setError(null)
 
       fetchScanRecord(paramId)
         .then((data) => {
@@ -82,8 +80,6 @@ function AnalysisResultPage() {
     }
 
     let cancelled = false
-    setLoading(true)
-    setError(null)
 
     analyzeUrl(paramUrl)
       .then((data) => {

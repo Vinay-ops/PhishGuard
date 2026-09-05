@@ -38,17 +38,19 @@ app = FastAPI(
 # ---------------------------------------------------------------------------
 # Read allowed origins from env; fall back to common dev defaults.
 _extra_origins = os.environ.get("CORS_ORIGINS", "").split(",")
-_allowed_origins = [
-    origin.strip()
-    for origin in [
-        "http://localhost:5173",
-        "http://127.0.0.1:5173",
-        "http://localhost:5174",
-        "http://127.0.0.1:5174",
-        *_extra_origins,
+    _allowed_origins = [
+        origin.strip()
+        for origin in [
+            "http://localhost:5173",
+            "http://127.0.0.1:5173",
+            "http://localhost:5174",
+            "http://127.0.0.1:5174",
+            "https://phish-guard-aev6099ag-vinay-ops-projects.vercel.app",
+            "https://phish-guard.vercel.app",
+            *_extra_origins,
+        ]
+        if origin
     ]
-    if origin
-]
 
 app.add_middleware(
     CORSMiddleware,

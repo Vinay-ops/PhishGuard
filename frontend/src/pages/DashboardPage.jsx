@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { fetchDashboard, fetchDashboardTrends, API_BASE_URL } from '../services/api.js'
+import { fetchDashboard, fetchDashboardTrends } from '../services/api.js'
 import DashboardStats from '../components/DashboardStats.jsx'
 import RiskDistributionChart from '../components/RiskDistributionChart.jsx'
 import RiskScoreTrendChart from '../components/RiskScoreTrendChart.jsx'
@@ -14,7 +14,6 @@ function DashboardPage() {
 
   useEffect(() => {
     let cancelled = false
-    setLoading(true)
 
     // Dashboard summary is the primary data; failures surface an error.
     fetchDashboard()

@@ -1,6 +1,6 @@
 import { useMemo, useState, useEffect, useCallback } from 'react'
 import { Link } from 'react-router-dom'
-import { fetchHistory, deleteScanRecord, API_BASE_URL } from '../services/api.js'
+import { fetchHistory, deleteScanRecord } from '../services/api.js'
 
 import ScanHistoryFilters from '../components/ScanHistoryFilters.jsx'
 import ScanHistoryTable from '../components/ScanHistoryTable.jsx'
@@ -30,10 +30,7 @@ function ScanHistoryPage() {
   const [applied, setApplied] = useState(EMPTY_FILTERS)
   const [page, setPage] = useState(1)
 
-  // Fetch history from the API.
   const loadHistory = useCallback(async () => {
-    setLoading(true)
-    setError(null)
     try {
       const data = await fetchHistory({
         search: applied.search,
@@ -53,7 +50,13 @@ function ScanHistoryPage() {
   }, [applied, page])
 
   useEffect(() => {
-    loadHistory()
+    let cancelled = false
+
+    loadHistory().then(() => {
+      if (!cancelled) setLoading(false)
+    })
+
+    return () => { cancelled = true }
   }, [loadHistory])
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE))
