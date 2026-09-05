@@ -8,10 +8,14 @@ Architecture:
     URL → Feature Extraction → Security Rules + ML Prediction → Risk Engine → Response
 
 Scoring strategy (deterministic):
-    ML component:       45%
-    URL rules component: 25%
-    TLS component:      15% (risk is inverse of security score)
-    Headers component:  15% (risk is inverse of security score)
+    ML component:        45%
+    URL phishing rules:  25%
+    TLS connection:      15% (risk is inverse of security score)
+    HTTP headers:        15% (risk is inverse of security score)
+
+    These are heuristic product weights, not statistically validated model
+    calibration. Unavailable connection checks contribute zero rather than
+    being treated as evidence of phishing.
 
     Classification thresholds:
         0-29  → SAFE
@@ -81,11 +85,17 @@ def calculate_risk(
     confidence = _compute_confidence(indicators, ml_result)
 
     # Collect detected indicators.
-    detected = [ind for ind in indicators if ind["detected"]]
+    # Keep transport findings in the full rules list, but reserve detected
+    # indicators for phishing-relevant URL evidence.
+    detected = [
+        ind for ind in indicators
+        if ind["detected"] and ind.get("rule") != "Missing HTTPS"
+    ]
 
     # Build summary.
-    summary = _build_summary(
-        classification, detected, ml_result, risk_breakdown, tls_analysis, header_analysis
+    summary = _build_summary(classification, detected, ml_result, tls_analysis, header_analysis)
+    top_factors = _build_top_factors(
+        detected, ml_result, tls_analysis, header_analysis, risk_breakdown
     )
 
     return {
@@ -97,6 +107,16 @@ def calculate_risk(
         "rules": indicators,  # All rules (both detected and not)
         "ml_analysis": ml_result,
         "risk_breakdown": risk_breakdown,
+        "top_factors": top_factors,
+        "rule_analysis": {
+            "score": rule_risk,
+            "findings": detected,
+        },
+        "connection_security": {
+            "https": features.get("uses_https", False),
+            "tls_available": tls_analysis.get("available", False),
+            "headers_available": header_analysis.get("available", False),
+        },
     }
 
 
@@ -153,6 +173,10 @@ def analyze_url(url: str) -> dict:
         "tls_analysis": tls_analysis,
         "header_analysis": header_analysis,
         "risk_breakdown": risk["risk_breakdown"],
+        "top_factors": risk["top_factors"],
+        "rule_analysis": risk["rule_analysis"],
+        "connection_security": risk["connection_security"],
+        "model_info": get_model_info_safe(),
     }
 
 
@@ -170,7 +194,12 @@ def _compute_rule_risk(indicators: List[dict]) -> int:
     score = 0
 
     for indicator in indicators:
-        if not indicator["detected"]:
+        if not indicator["detected"] or indicator.get("status") == "PASS":
+            continue
+
+        # HTTPS is a transport property, not phishing evidence. It is
+        # represented in connection_security and must not inflate URL risk.
+        if indicator.get("rule") == "Missing HTTPS":
             continue
 
         severity = indicator["severity"]
@@ -193,13 +222,15 @@ def _build_risk_breakdown(
 ) -> dict:
     """Build risk-oriented component scores and their weighted contributions."""
     ml_score = round(ml_phishing_prob * 100) if ml_available else 0
-    tls_score = 100 - int(tls_analysis.get("score", 0))
-    header_score = 100 - int(header_analysis.get("score", 0))
+    tls_available = tls_analysis.get("available", False)
+    headers_available = header_analysis.get("available", False)
+    tls_score = 100 - int(tls_analysis.get("score", 0)) if tls_available else 0
+    header_score = 100 - int(header_analysis.get("score", 0)) if headers_available else 0
     return {
         "ml": {"score": ml_score, "weight": 45, "weighted_contribution": ml_score * 0.45, "available": ml_available},
         "url_rules": {"score": rule_risk, "weight": 25, "weighted_contribution": rule_risk * 0.25, "available": True},
-        "tls": {"score": tls_score, "weight": 15, "weighted_contribution": tls_score * 0.15, "available": tls_analysis.get("available", False)},
-        "headers": {"score": header_score, "weight": 15, "weighted_contribution": header_score * 0.15, "available": header_analysis.get("available", False)},
+        "tls": {"score": tls_score, "weight": 15, "weighted_contribution": tls_score * 0.15, "available": tls_available},
+        "headers": {"score": header_score, "weight": 15, "weighted_contribution": header_score * 0.15, "available": headers_available},
     }
 
 
@@ -220,8 +251,9 @@ def _compute_confidence(indicators: List[dict], ml_result: dict) -> int:
     If ML is available, use the model's prediction probability as confidence.
     Otherwise, use a rule-based heuristic.
 
-    The ML probability is already a strong signal (the model has 94.8% accuracy),
-    so we use it directly as the confidence percentage.
+    ML probability is used as confidence only when the verified model returned
+    a probability. This is model confidence, not confidence in the final risk
+    classification.
     """
     if ml_result.get("available"):
         # Use the model's probability as confidence.
@@ -240,14 +272,12 @@ def _build_summary(
     classification: str,
     detected: List[dict],
     ml_result: dict,
-    risk_breakdown: dict,
     tls_analysis: dict,
     header_analysis: dict,
 ) -> str:
     """Generate a human-readable analysis summary."""
     flagged_names = [ind["rule"] for ind in detected]
     ml_available = ml_result.get("available", False)
-    ml_prediction = ml_result.get("prediction")
     ml_phishing_prob = ml_result.get("phishing_probability")
 
     issues = ", ".join(flagged_names[:3]) if flagged_names else "none"
@@ -261,9 +291,40 @@ def _build_summary(
         f"Overall classification: {classification}. URL rules flagged {issues}; "
         f"{ml_note}; {tls_note}; {header_note}. "
         "The combined score weighs ML 45%, URL rules 25%, TLS 15%, and "
-        "HTTP headers 15%. A model prediction is an interpretation, not proof; "
+        f"HTTP headers 15%. A model prediction is an interpretation, not proof; "
         "verify the site independently before sharing sensitive information."
     )
+
+
+def _build_top_factors(
+    detected: List[dict],
+    ml_result: dict,
+    tls_analysis: dict,
+    header_analysis: dict,
+    risk_breakdown: dict,
+) -> List[str]:
+    """Return explanations backed by actual signals, ordered by contribution."""
+    factors = []
+    if ml_result.get("available") and (ml_result.get("phishing_probability") or 0) >= 0.5:
+        factors.append((risk_breakdown["ml"]["weighted_contribution"], "High ML phishing probability"))
+    for indicator in detected:
+        if indicator.get("rule") != "Missing HTTPS":
+            factors.append((risk_breakdown["url_rules"]["weighted_contribution"], indicator["rule"]))
+    if tls_analysis.get("available") and risk_breakdown["tls"]["score"] > 0:
+        factors.append((risk_breakdown["tls"]["weighted_contribution"], "TLS connection security concerns"))
+    if header_analysis.get("available") and risk_breakdown["headers"]["score"] > 0:
+        factors.append((risk_breakdown["headers"]["weighted_contribution"], "Missing HTTP security headers"))
+    factors.sort(key=lambda item: item[0], reverse=True)
+    return [factor for _, factor in factors[:5]]
+
+
+def get_model_info_safe() -> dict:
+    """Load model metadata without allowing metadata failure to break analysis."""
+    try:
+        from services.ml_predictor import get_model_info
+        return get_model_info()
+    except Exception as exc:
+        return {"available": False, "error": str(exc)}
 
 
 def _build_message(

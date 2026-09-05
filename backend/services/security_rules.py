@@ -32,8 +32,9 @@ def analyze_security_rules(features: dict) -> List[dict]:
             - rule: name of the rule
             - description: beginner-friendly explanation
             - severity: "low" | "medium" | "high"
-            - value: the specific value or detail that triggered the rule
+                        - value: the specific value or detail that triggered the rule
               (varies by rule — may be bool, string, or number)
+                        - status: PASS, WARNING, or DETECTED
     """
     indicators: List[dict] = []
 
@@ -164,7 +165,12 @@ def _make_rule(
     return {
         "rule": name,
         "description": description,
+        "message": description,
         "severity": severity,
         "detected": detected,
         "value": value,
+        "evidence": value,
+        "status": "DETECTED" if detected and name != "Missing HTTPS" else (
+            "WARNING" if detected else "PASS"
+        ),
     }

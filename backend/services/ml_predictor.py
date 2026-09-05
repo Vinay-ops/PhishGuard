@@ -6,10 +6,11 @@ ONNX-based phishing URL detection using the pirocheto/phishing-url-detection mod
 Model information:
     - Model: pirocheto/phishing-url-detection
     - Source: https://huggingface.co/pirocheto/phishing-url-detection
-    - Type: LinearSVM (exported to ONNX)
+    - Type: ONNX classifier (the artifact does not expose model metadata)
     - Input: URL strings directly (model handles preprocessing internally)
-    - Output labels: 0 = SAFE, 1 = PHISHING
-    - Output probabilities: [safe_probability, phishing_probability]
+        - Output labels: 0 = SAFE, 1 = PHISHING (artifact contract verified by
+            output shape and repository model documentation)
+        - Output probabilities: [safe_probability, phishing_probability]
 
 The model accepts raw URL strings and handles all preprocessing internally.
 No manual feature engineering is required for ML inference.
@@ -22,9 +23,10 @@ from typing import Optional
 
 import numpy as np
 
+from app.core.config import MODEL_PATH
+
 # Path to the ONNX model relative to this file's directory.
-_MODEL_DIR = os.path.join(os.path.dirname(__file__), "..", "ml")
-_MODEL_PATH = os.path.join(_MODEL_DIR, "model.onnx")
+_MODEL_PATH = os.path.abspath(MODEL_PATH)
 
 # Module-level model reference (loaded once, reused across requests).
 _session = None
@@ -40,7 +42,7 @@ def _load_model():
         return
 
     if not os.path.isfile(_MODEL_PATH):
-        _model_load_error = "ML model file not found at ml/model.onnx"
+        _model_load_error = f"ML model file not found at {_MODEL_PATH}"
         _model_loaded = True  # Mark as attempted so we don't retry
         return
 
@@ -103,24 +105,44 @@ def predict_url(url: str) -> dict:
         }
 
     try:
-        # Prepare input: model expects a numpy array of URL strings.
-        inputs = np.array([url.strip()], dtype="str")
+        if not isinstance(url, str) or not url.strip():
+            raise ValueError("URL must be a non-empty string.")
+
+        input_name = _session.get_inputs()[0].name
+        output_names = [output.name for output in _session.get_outputs()]
+        if len(output_names) < 2:
+            raise ValueError("ML model must expose label and probability outputs.")
+
+        # The verified artifact accepts a one-dimensional string tensor.
+        inputs = np.array([url.strip()], dtype=np.str_)
 
         # Run inference.
         # Model I/O (verified by inspection):
         #   Input:  "inputs"     -> tensor(string), shape [None]
         #   Output: "label"      -> tensor(int64),  shape [None]        (0=safe, 1=phishing)
         #   Output: "probabilities" -> tensor(float), shape [None, 2]   ([safe_prob, phishing_prob])
-        results = _session.run(None, {"inputs": inputs})
+        raw_results = _session.run(None, {input_name: inputs})
+        results = dict(zip(output_names, raw_results))
 
-        # Extract probabilities.
-        probabilities = results[1][0]  # First (only) URL, shape [2]
-        safe_prob = float(probabilities[0])
-        phishing_prob = float(probabilities[1])
+        labels = np.asarray(results.get("label"))
+        probability_values = np.asarray(results.get("probabilities"), dtype=float)
+        if labels.size < 1 or probability_values.shape != (1, 2):
+            raise ValueError("ML model returned an unexpected output shape.")
 
-        # Determine prediction label.
-        # Label 0 = SAFE, Label 1 = PHISHING (verified from model output).
-        prediction = "PHISHING" if phishing_prob >= 0.5 else "SAFE"
+        label = int(labels.reshape(-1)[0])
+        safe_prob = float(probability_values[0, 0])
+        phishing_prob = float(probability_values[0, 1])
+        if not all(np.isfinite(value) for value in (safe_prob, phishing_prob)):
+            raise ValueError("ML model returned non-finite probabilities.")
+        if min(safe_prob, phishing_prob) < 0 or max(safe_prob, phishing_prob) > 1:
+            raise ValueError("ML model returned probabilities outside 0-1.")
+
+        # The artifact's output contract is class 0 = safe and class 1 =
+        # phishing. Use the predicted label, while returning the actual
+        # probability columns rather than treating a decision score as one.
+        if label not in (0, 1):
+            raise ValueError(f"ML model returned unknown class label: {label}")
+        prediction = "PHISHING" if label == 1 else "SAFE"
 
         return {
             "available": True,
@@ -145,7 +167,9 @@ def get_model_info() -> dict:
     _load_model()
     return {
         "model_name": "pirocheto/phishing-url-detection",
-        "model_type": "LinearSVM (ONNX)",
+            "model_type": "ONNX classifier",
+            "input": "Raw URL string",
+            "output": "Class label and safe/phishing probabilities",
         "available": _model_loaded and _session is not None and _model_load_error is None,
         "error": _model_load_error,
     }

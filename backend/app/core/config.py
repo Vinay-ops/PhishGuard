@@ -27,9 +27,12 @@ DATABASE_URL: str = os.environ.get(
 # ---------------------------------------------------------------------------
 # ML model
 # ---------------------------------------------------------------------------
-MODEL_PATH: str = os.environ.get(
-    "MODEL_PATH",
-    str(_ML_DIR / "model.onnx"),
+_raw_model_path = os.environ.get("MODEL_PATH")
+_configured_model_path = Path(_raw_model_path) if _raw_model_path else _ML_DIR / "model.onnx"
+MODEL_PATH: str = str(
+    _configured_model_path
+    if _configured_model_path.is_absolute()
+    else (_BACKEND_DIR / _configured_model_path).resolve()
 )
 
 # ---------------------------------------------------------------------------

@@ -8,7 +8,8 @@ A full-stack web application that analyzes URLs for phishing indicators using a 
 - **URL Security Analysis** — Real-time phishing URL detection using security rules
 - **Feature Extraction** — Extracts 15+ URL features (length, entropy, subdomains, etc.)
 - **Security Rules Engine** — 8 explainable security rules with severity levels
-- **Risk Assessment** — Deterministic combined ML + rule-based risk scoring (SAFE / SUSPICIOUS / PHISHING)
+- **Risk Assessment** — Deterministic weighted ML, URL-rule, TLS, and HTTP-header scoring (SAFE / SUSPICIOUS / PHISHING)
+- **Explainable Results** — Separate ML probability, phishing evidence, connection security, and top contributing factors
 - **Scan History** — Persistent scan history stored in SQLite with search, filtering, and pagination
 - **Dashboard** — Real-time statistics and visualizations
 - **Responsive Design** — Works on desktop, tablet, and mobile devices
@@ -122,7 +123,7 @@ phishguard/
     │   ├── feature_extractor.py      # URL feature extraction
     │   ├── security_rules.py         # Security rules engine
     │   ├── risk_engine.py            # Risk scoring + classification
-    │   └── ml_predictor.py           # ML model interface (placeholder)
+    │   └── ml_predictor.py           # Cached ONNX model interface
     └── ml/
         └── model.onnx                # ONNX model (pirocheto/phishing-url-detection)
 ```
@@ -166,6 +167,35 @@ uvicorn main:app --reload --port 8000
 ```
 
 The backend runs at `http://127.0.0.1:8000`.
+
+### Detection and Risk Model
+
+PhishGuard keeps two analysis layers separate. The shipped
+`pirocheto/phishing-url-detection` ONNX artifact accepts a raw URL string and
+returns a class label plus `[safe_probability, phishing_probability]`. URL
+features are sent only to the explainable rules engine; they are not passed to
+the ML model.
+
+The final risk score is a documented heuristic, not a calibrated probability:
+
+```
+final risk = ML probability * 45%
+           + URL phishing-rule risk * 25%
+           + TLS connection risk * 15%
+           + HTTP header risk * 15%
+```
+
+TLS and header risk are the inverse of their respective security scores.
+Unavailable network checks contribute zero rather than being treated as
+phishing evidence. Missing HTTPS remains visible as a transport warning but
+does not inflate the URL phishing-rule score. The API returns each component,
+weight, and weighted contribution so the final integer is reproducible.
+
+The model is loaded once per Python process from the trusted repository file
+`backend/ml/model.onnx`; there is no uploaded-model endpoint and no model
+download on each request. The current artifact is approximately 23.5 MB, so
+Vercel's configured 50 MB Python Lambda limit remains relevant together with
+ONNX Runtime cold-start and package-size constraints.
 
 ## Environment Variables
 
@@ -221,7 +251,13 @@ Response:
   "detected_indicators": [...],
   "summary": "No major phishing indicators were detected...",
   "features": {...},
-  "rules": [...]
+  "rules": [...],
+  "ml_analysis": {...},
+  "rule_analysis": {"score": 0, "findings": [...]},
+  "connection_security": {"https": true, "tls_available": true, "headers_available": true},
+  "risk_breakdown": {...},
+  "top_factors": [...],
+  "model_info": {...}
 }
 ```
 

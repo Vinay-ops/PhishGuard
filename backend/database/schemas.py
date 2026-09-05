@@ -63,6 +63,9 @@ class SecurityIndicator(BaseModel):
     )
     detected: bool
     value: Optional[str] = None
+    status: Optional[str] = None
+    message: Optional[str] = None
+    evidence: Optional[str] = None
 
 
 # --- ML analysis schemas ----------------------------------------------------
@@ -96,6 +99,10 @@ class AnalyzeResponse(BaseModel):
     tls_analysis: dict = {}
     header_analysis: dict = {}
     risk_breakdown: dict = {}
+    top_factors: List[str] = []
+    rule_analysis: dict = {}
+    connection_security: dict = {}
+    model_info: dict = {}
 
 
 class ScanRecordResponse(BaseModel):

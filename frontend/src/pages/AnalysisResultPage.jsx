@@ -188,6 +188,8 @@ function AnalysisResultPage() {
   const tlsAnalysis = result.tlsAnalysis ?? {}
   const headerAnalysis = result.headerAnalysis ?? {}
   const riskBreakdown = result.riskBreakdown ?? {}
+  const topFactors = result.topFactors ?? []
+  const modelInfo = result.modelInfo ?? {}
 
   const handleCopy = async () => {
     try {
@@ -468,11 +470,49 @@ function AnalysisResultPage() {
                     )}
                   </div>
                 )}
+                {modelInfo.model_name && (
+                  <div className="model-info mt-4 pt-3">
+                    <span className="kv-label d-block mb-2">Detection Engine</span>
+                    <small className="text-secondary d-block">{modelInfo.model_name}</small>
+                    <small className="text-secondary d-block">Input: {modelInfo.input || 'Raw URL string'}</small>
+                    <small className="text-secondary d-block">Output: {modelInfo.output || 'Model prediction and probabilities'}</small>
+                  </div>
+                )}
               </div>
             </div>
           </div>
         </div>
       </section>
+
+      {/* ---- Explainability --------------------------------------------- */}
+      {topFactors.length > 0 && (
+        <section className="pb-5">
+          <div className="container">
+            <div className="row justify-content-center text-center mb-4">
+              <div className="col-12 col-lg-8">
+                <span className="section-eyebrow">Explainability</span>
+                <h2 className="result-section-title mt-2">Why Was This Flagged?</h2>
+                <p className="result-section-sub mx-auto">These factors correspond to signals actually returned by the model or rule checks.</p>
+              </div>
+            </div>
+            <div className="row justify-content-center">
+              <div className="col-12 col-lg-8">
+                <div className="card pg-card p-4">
+                  <ol className="list-unstyled mb-0">
+                    {topFactors.map((factor) => (
+                      <li className="rule-row" key={factor}>
+                        <i className="bi bi-exclamation-triangle-fill tone-warning" aria-hidden="true"></i>
+                        <span className="flex-grow-1">{factor}</span>
+                      </li>
+                    ))}
+                  </ol>
+                  <small className="text-secondary d-block mt-3">HTTPS and certificate status describe connection security; they do not prove that a site is legitimate.</small>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* ---- Security risk breakdown ------------------------------------ */}
       <section className="pb-5">
@@ -646,7 +686,7 @@ function AnalysisResultPage() {
                 <ul className="list-unstyled mb-0">
                   {rules.length > 0 ? (
                     rules.map((rule) => {
-                      const rTone = rule.detected ? 'danger' : 'success'
+                      const rTone = rule.status === 'WARNING' ? 'warning' : rule.detected ? 'danger' : 'success'
                       const rIcon = rule.detected
                         ? 'bi-exclamation-octagon-fill'
                         : 'bi-check-circle-fill'
@@ -655,7 +695,7 @@ function AnalysisResultPage() {
                           <i className={`bi ${rIcon} tone-${rTone}`} aria-hidden="true"></i>
                           <span className="flex-grow-1">{rule.rule}</span>
                           <span className={`status-badge tone-${rTone}`} title={rule.description}>
-                            {rule.detected ? rule.severity.toUpperCase() : 'LOW RISK'}
+                            {rule.status || (rule.detected ? rule.severity.toUpperCase() : 'PASS')}
                           </span>
                         </li>
                       )

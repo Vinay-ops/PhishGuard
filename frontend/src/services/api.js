@@ -48,6 +48,10 @@ function normalizeAnalysisResult(data) {
     tlsAnalysis: data.tls_analysis ?? {},
     headerAnalysis: data.header_analysis ?? {},
     riskBreakdown: data.risk_breakdown ?? {},
+    topFactors: data.top_factors ?? [],
+    ruleAnalysis: data.rule_analysis ?? {},
+    connectionSecurity: data.connection_security ?? {},
+    modelInfo: data.model_info ?? {},
   }
 }
 
@@ -105,6 +109,10 @@ function normalizeHistoricalRecord(record) {
     tlsAnalysis: securityAnalysis.tls_analysis ?? {},
     headerAnalysis: securityAnalysis.header_analysis ?? {},
     riskBreakdown: securityAnalysis.risk_breakdown ?? {},
+    topFactors: securityAnalysis.top_factors ?? [],
+    ruleAnalysis: securityAnalysis.rule_analysis ?? {},
+    connectionSecurity: securityAnalysis.connection_security ?? {},
+    modelInfo: securityAnalysis.model_info ?? {},
     scannedAt: record.scanned_at ? new Date(record.scanned_at) : null,
     isHistorical: true,
   }

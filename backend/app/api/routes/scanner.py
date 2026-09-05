@@ -72,6 +72,10 @@ def analyze(request: AnalyzeRequest, db: Session = Depends(get_db)):
                 "tls_analysis": result.get("tls_analysis", {}),
                 "header_analysis": result.get("header_analysis", {}),
                 "risk_breakdown": result.get("risk_breakdown", {}),
+                "top_factors": result.get("top_factors", []),
+                "rule_analysis": result.get("rule_analysis", {}),
+                "connection_security": result.get("connection_security", {}),
+                "model_info": result.get("model_info", {}),
             }),
         )
         db.add(record)
