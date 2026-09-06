@@ -193,6 +193,38 @@ class TestApiValidation(unittest.TestCase):
         self.assertNotIn("File \"", response.text)
         self.assertNotIn("services\\", response.text)
 
+    def test_cors_allows_project_vercel_origins(self):
+        # Preflight from one of the project's own Vercel deployment URLs must
+        # be allowed so the SPA works from any deployment/preview domain.
+        origin = "https://phish-guard-4tdrj01qe-vinay-ops-projects.vercel.app"
+        response = self.client.options(
+            "/api/v1/analyze",
+            headers={
+                "Origin": origin,
+                "Access-Control-Request-Method": "POST",
+            },
+        )
+        self.assertIn(response.status_code, (200, 204))
+        self.assertEqual(response.headers.get("access-control-allow-origin"), origin)
+
+    def test_cors_allows_alias_and_localhost(self):
+        for origin in ("https://phish-guard-ruby-three.vercel.app", "http://localhost:5173"):
+            with self.subTest(origin=origin):
+                response = self.client.options(
+                    "/api/v1/analyze",
+                    headers={"Origin": origin, "Access-Control-Request-Method": "POST"},
+                )
+                self.assertEqual(
+                    response.headers.get("access-control-allow-origin"), origin
+                )
+
+    def test_cors_blocks_unrelated_origins(self):
+        response = self.client.options(
+            "/api/v1/analyze",
+            headers={"Origin": "https://evil.example.com", "Access-Control-Request-Method": "POST"},
+        )
+        self.assertIsNone(response.headers.get("access-control-allow-origin"))
+
 
 if __name__ == "__main__":
     unittest.main()

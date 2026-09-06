@@ -60,6 +60,17 @@ CORS_ORIGINS: list[str] = [
     if origin.strip()
 ]
 
+# Scoped CORS origin regex. The default allows only the PhishGuard project's
+# own Vercel domains (canonical alias + deployment/preview URLs) and local
+# dev origins, so the SPA works from any of its deployment URLs without
+# opening the API to arbitrary origins. Override with CORS_ORIGINS_REGEX.
+CORS_ORIGINS_REGEX: str = os.environ.get(
+    "CORS_ORIGINS_REGEX",
+    r"^https://phish-guard-[a-z0-9]+-vinay-ops-projects\.vercel\.app$|"
+    r"^https://phish-guard-ruby-three\.vercel\.app$|"
+    r"^http://(localhost|127\.0\.0\.1):5173$",
+)
+
 # ---------------------------------------------------------------------------
 # API
 # ---------------------------------------------------------------------------
