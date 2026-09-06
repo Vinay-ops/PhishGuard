@@ -1,6 +1,23 @@
+# PhishGuard backend dependencies.
+#
+# ML stack (pinned to the LIVE-verified SivakumarP stack — see
+# backend/benchmark/vercel_live_report.md). scikit-learn==1.8.0 matches the
+# version that serialized backend/ml/sivakumar/*.pkl, so no
+# InconsistentVersionWarning occurs at load time.
+# NOTE: scikit-learn 1.8.0 requires Python >= 3.11. Vercel runs Python 3.12
+# (default) so this resolves there; local dev on Python 3.10 uses
+# scikit-learn 1.7.2, which produces bit-identical predictions (verified
+# during the compatibility audit).
+scikit-learn==1.8.0
+joblib==1.6.0
+scipy==1.15.3
+numpy==2.2.6
+tldextract==5.3.2
+
+# Web framework
 fastapi
 uvicorn
 sqlalchemy
-tldextract
+
+# Legacy pirocheto ONNX model — retained for rollback (MODEL_BACKEND=pirocheto).
 onnxruntime
-numpy

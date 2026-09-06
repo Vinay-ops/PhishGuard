@@ -35,6 +35,19 @@ MODEL_PATH: str = str(
     else (_BACKEND_DIR / _configured_model_path).resolve()
 )
 
+# SivakumarP RandomForest artifacts (production model).
+#   model.pkl            RandomForestClassifier (100 trees, gini, depth 32)
+#   dataencoder_url.pkl  char TF-IDF of the full URL string        (96 features)
+#   dataencoder_dom.pkl  char TF-IDF of the registered domain      (57 features)
+#   dataencoder_tld.pkl  char TF-IDF of the public suffix / TLD    (32 features)
+#   datascaler.pkl       StandardScaler(digit_cnt, is_https)       (2 features)
+# Feature layout: [TF-IDF(url) | TF-IDF(dom) | TF-IDF(tld) | scaled(digit_cnt, is_https)] = 187
+SIVAKUMAR_DIR: str = str(_ML_DIR / "sivakumar")
+
+# Active ML backend. "sivakumar" = SivakumarP/PhishingURLDetection RandomForest
+# (default). "pirocheto" = the legacy ONNX model (kept for rollback).
+MODEL_BACKEND: str = os.environ.get("MODEL_BACKEND", "sivakumar")
+
 # ---------------------------------------------------------------------------
 # CORS
 # ---------------------------------------------------------------------------

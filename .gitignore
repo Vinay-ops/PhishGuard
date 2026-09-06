@@ -24,3 +24,14 @@ venv/
 
 # Freebuff
 .freebuff/
+
+.vercel
+.env*
+
+# Dev-only benchmark artifacts — large downloaded candidate models and raw
+# datasets. The benchmark scripts/reports stay tracked; the binaries do not.
+backend/benchmark/models/
+backend/benchmark/vercel_probe/models/
+backend/benchmark/_url_phish_sample.csv
+backend/benchmark/_phishing_links_raw.txt
+backend/benchmark/_phishing_domains_raw.txt

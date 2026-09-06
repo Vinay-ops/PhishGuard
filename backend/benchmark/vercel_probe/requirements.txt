@@ -1,0 +1,11 @@
+# Isolated SivakumarP probe — pinned dependency versions.
+# scikit-learn MUST be 1.8.0: the RandomForest and preprocessors were
+# serialized with sklearn 1.8.0. Loading with any other version emits
+# InconsistentVersionWarning.
+scikit-learn==1.8.0
+joblib==1.6.0
+scipy==1.15.3
+numpy==2.2.6
+tldextract==5.3.2
+fastapi==0.141.1
+uvicorn==0.52.4

@@ -1,6 +1,7 @@
 """HTTP security header inspection for a public URL."""
 
 from urllib.error import HTTPError, URLError
+from urllib.parse import urlparse
 from urllib.request import Request, build_opener, HTTPRedirectHandler, urlopen
 
 from services.ssrf_protector import SSRFViolation, validate_public_target
@@ -20,6 +21,10 @@ class LimitedRedirectHandler(HTTPRedirectHandler):
     max_redirections = 3
 
     def redirect_request(self, request, fp, code, msg, headers, newurl):
+        # Never follow a redirect away from http(s): urllib would otherwise
+        # attempt ftp:// or other schemes against the validated host.
+        if urlparse(newurl).scheme.lower() not in ("http", "https"):
+            raise SSRFViolation("Redirects to non-HTTP(S) protocols are blocked.")
         validate_public_target(newurl)
         return super().redirect_request(request, fp, code, msg, headers, newurl)
 
@@ -27,6 +32,10 @@ class LimitedRedirectHandler(HTTPRedirectHandler):
 def analyze_headers(url: str, timeout: float = 4.0) -> dict:
     """Fetch headers and return presence details plus a 0-100 score."""
     try:
+        # Only http(s) targets are ever analyzed; anything else returns a
+        # controlled unavailable result instead of being handed to urllib.
+        if urlparse(url).scheme.lower() not in ("http", "https"):
+            raise SSRFViolation("Only HTTP(S) URLs are analyzed.")
         validate_public_target(url)
         request = Request(url, headers={"User-Agent": "PhishGuard/1.0"}, method="GET")
         opener = build_opener(LimitedRedirectHandler)

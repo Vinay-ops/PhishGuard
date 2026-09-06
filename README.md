@@ -1,10 +1,10 @@
 # PhishGuard – Phishing URL Detection & Security Analyzer
 
-A full-stack web application that analyzes URLs for phishing indicators using a combination of machine learning (ONNX) and security rules. Built with React.js, Bootstrap 5, FastAPI, and SQLite.
+A full-stack web application that analyzes URLs for phishing indicators using a combination of machine learning (Random Forest) and security rules. Built with React.js, Bootstrap 5, FastAPI, and SQLite.
 
 ## Features
 
-- **ML-Based Detection** — ONNX model from pirocheto/phishing-url-detection for phishing URL classification
+- **ML-Based Detection** — Random Forest model (SivakumarP/PhishingURLDetection) on TF-IDF URL features for phishing URL classification
 - **URL Security Analysis** — Real-time phishing URL detection using security rules
 - **Feature Extraction** — Extracts 15+ URL features (length, entropy, subdomains, etc.)
 - **Security Rules Engine** — 8 explainable security rules with severity levels
@@ -24,7 +24,7 @@ A full-stack web application that analyzes URLs for phishing indicators using a 
 | Charts | Chart.js, react-chartjs-2 |
 | Backend | Python, FastAPI, Uvicorn |
 | Database | SQLite + SQLAlchemy |
-| ML | ONNX Runtime, pirocheto/phishing-url-detection |
+| ML | scikit-learn Random Forest (SivakumarP/PhishingURLDetection), joblib, scipy, tldextract |
 
 ## System Architecture
 
@@ -43,7 +43,7 @@ URL Feature Extraction
 │                      │
 │ Security Rules       │
 │        +             │
-│ ONNX ML Model        │
+│ RandomForest ML Model│
 │                      │
 └──────────┬───────────┘
            ↓
@@ -120,12 +120,18 @@ phishguard/
     │   └── dashboard.py              # GET /dashboard
     ├── services/
     │   ├── __init__.py
-    │   ├── feature_extractor.py      # URL feature extraction
+    │   ├── feature_extractor.py      # URL feature extraction (rules engine)
     │   ├── security_rules.py         # Security rules engine
     │   ├── risk_engine.py            # Risk scoring + classification
-    │   └── ml_predictor.py           # Cached ONNX model interface
+    │   └── ml_predictor.py           # Cached ML predictor (SivakumarP RF, legacy ONNX fallback)
     └── ml/
-        └── model.onnx                # ONNX model (pirocheto/phishing-url-detection)
+        ├── sivakumar/                # SivakumarP Random Forest artifacts (production)
+        │   ├── model.pkl             # RandomForestClassifier (100 trees, gini, depth 32)
+        │   ├── dataencoder_url.pkl   # char TF-IDF of full URL (96 features)
+        │   ├── dataencoder_dom.pkl   # char TF-IDF of registered domain (57 features)
+        │   ├── dataencoder_tld.pkl   # char TF-IDF of public suffix / TLD (32 features)
+        │   └── datascaler.pkl        # StandardScaler(digit_cnt, is_https) (2 features)
+        └── model.onnx                # Legacy pirocheto ONNX model (rollback only)
 ```
 
 ## Setup
@@ -170,17 +176,36 @@ The backend runs at `http://127.0.0.1:8000`.
 
 ### Detection and Risk Model
 
-PhishGuard keeps two analysis layers separate. The shipped
-`pirocheto/phishing-url-detection` ONNX artifact accepts a raw URL string and
-returns a class label plus `[safe_probability, phishing_probability]`. URL
-features are sent only to the explainable rules engine; they are not passed to
-the ML model.
+The production ML model is **SivakumarP/PhishingURLDetection**, a
+scikit-learn Random Forest (100 trees, gini, depth 32) trained on a
+feature-engineered URL dataset. It does **not** accept a raw URL string alone;
+`ml_predictor.py` builds its exact 187-feature input internally:
+
+```
+TF-IDF(char, full URL)            # dataencoder_url.pkl   -> 96 features
++ TF-IDF(char, registered domain) # dataencoder_dom.pkl   -> 57 features
++ TF-IDF(char, public suffix)     # dataencoder_tld.pkl   -> 32 features
++ scaled(digit_cnt, is_https)     # datascaler.pkl        ->  2 features
+= 187 features
+```
+
+Registered domain and public suffix are extracted with `tldextract` (IP hosts
+yield `dom` = IP string and an empty TLD, matching the training dataset). The
+model loads the five pickle artifacts once per Python process (module-level
+cache) and returns the phishing probability as `predict_proba()[1]`
+(class 0 = benign, class 1 = phishing). No probability post-processing is
+applied.
+
+The legacy `pirocheto/phishing-url-detection` ONNX model is preserved at
+`backend/ml/model.onnx` for rollback; set `MODEL_BACKEND=pirocheto` to
+restore it. URL features for the explainable rules engine are computed
+independently and never substituted for the model's TF-IDF input.
 
 The final risk score is a documented heuristic, not a calibrated probability:
 
 ```
-final phishing risk = ML phishing probability * 70%
-                    + URL phishing-rule risk * 30%
+final phishing risk = ML phishing probability * 70%   (heuristic weight)
+                    + URL phishing-rule risk * 30%    (heuristic weight)
 ```
 
 TLS connection security and HTTP hardening are separate dimensions and never
@@ -191,11 +216,13 @@ component, weight, and weighted contribution so the final integer is
 reproducible, along with separate `connection_security` and `http_security`
 objects.
 
-The model is loaded once per Python process from the trusted repository file
-`backend/ml/model.onnx`; there is no uploaded-model endpoint and no model
-download on each request. The current artifact is approximately 23.5 MB, so
-Vercel's configured 50 MB Python Lambda limit remains relevant together with
-ONNX Runtime cold-start and package-size constraints.
+Both ML models are loaded once per Python process from trusted repository
+files under `backend/ml/`; there is no uploaded-model endpoint and no model
+download on each request. The SivakumarP artifacts total ~29.8 MB; with
+scikit-learn/scipy/joblib/tldextract the full deployment bundle is ~247 MB,
+which fits Vercel's 500 MB uncompressed Python function limit (verified live,
+see `backend/benchmark/vercel_live_report.md`). Cold start is ~1.8 s with
+model load cached per warm instance.
 
 ## Environment Variables
 
@@ -210,6 +237,7 @@ ONNX Runtime cold-start and package-size constraints.
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `CORS_ORIGINS` | (empty) | Comma-separated allowed origins |
+| `MODEL_BACKEND` | `sivakumar` | ML backend: `sivakumar` (Random Forest, default) or `pirocheto` (legacy ONNX, rollback) |
 
 ## API Endpoints
 
@@ -350,37 +378,50 @@ Response:
 
 **Status**: Active
 
-**Model**: [pirocheto/phishing-url-detection](https://huggingface.co/pirocheto/phishing-url-detection)
+**Model**: [SivakumarP/PhishingURLDetection](https://huggingface.co/SivakumarP/PhishingURLDetection)
 
-**Inference**: ONNX Runtime
+**Inference**: scikit-learn (`predict_proba`)
 
-**Model type**: LinearSVM (exported to ONNX format)
+**Model type**: Random Forest classifier (100 trees, gini, max depth 32)
 
 **Purpose**: Binary classification of URLs as phishing or safe
 
+**Artifacts** (in `backend/ml/sivakumar/`): `model.pkl` + three TF-IDF
+vectorizers (`dataencoder_url.pkl`, `dataencoder_dom.pkl`,
+`dataencoder_tld.pkl`) + `datascaler.pkl`
+
 **How it works**:
-- The model accepts raw URL strings directly (no manual preprocessing required)
-- It outputs a phishing probability and safe probability for each URL
+- `ml_predictor.py` preprocesses each URL into the exact 187-feature vector: char TF-IDF of the full URL, the registered domain, and the public suffix, concatenated with scaled digit count and HTTPS flag (see "Detection and Risk Model" above)
+- Feature order is fixed; nothing is normalized or re-scaled after the model
 - The ML prediction is combined with the security rules engine in a weighted formula:
-  - ML component: 70% weight (phishing probability)
-  - Rule component: 30% weight (normalized rule risk score)
+  - ML component: 70% weight (heuristic) — phishing probability
+  - Rule component: 30% weight (heuristic) — normalized rule risk score
 
-**Model performance** (from HuggingFace):
-- ROC AUC: 0.987
-- Accuracy: 94.9%
-- F1 Score: 94.9%
+**Input/Output** (verified by inspection and live testing):
+- Input: preprocessed 187-dim feature vector (built internally from a raw URL string)
+- `predict_proba()` shape [n, 2] — column 0 = benign (class 0), column 1 = phishing (class 1)
+- `phishing_probability = predict_proba(features)[1]`; the mapping is **not** reversed
 
-**Input/Output** (verified by inspection):
-- Input: URL strings (tensor(string), shape [None])
-- Output 0: Class labels (tensor(int64)) — 0 = SAFE, 1 = PHISHING
-- Output 1: Probabilities (tensor(float), shape [None, 2]) — [safe_prob, phishing_prob]
+**Benchmark results** (internal 210-URL benchmark only — not universal
+real-world accuracy): accuracy 85.71%, precision 93.42%, recall 73.96%, F1
+0.8256, ROC-AUC 0.9471, FPR 4.39%, FNR 26.04%. Full methodology and
+per-URL predictions in `backend/benchmark/`.
+
+**Verified live predictions** (local vs Vercel, bit-identical):
+- `learnova-ai-8.vercel.app` → 54.0% phishing
+- `www.google.com` → 13.0% phishing
+- `example.com` → 30.0% phishing
+- `github.com` → 32.0% phishing
+- `paypal.com` → 45.0% phishing
 
 **Limitations**:
-- The model may not detect all phishing techniques
-- URL-only analysis cannot verify actual website content
-- Risk scores are deterministic but should not be treated as guarantees
+- The model may not detect all phishing techniques; URL-only analysis cannot verify actual website content
+- The ML signal is combined with rule-based analysis and must not be treated as ground truth or a guarantee
+- Reported metrics are benchmark-only and should not be claimed as universal real-world accuracy
 
-**Fallback**: If the ONNX model is unavailable, the system falls back to rule-based analysis only.
+**Fallback / rollback**: If the SivakumarP artifacts fail to load, the
+predictor falls back to rule-based analysis only. Set `MODEL_BACKEND=pirocheto`
+to restore the legacy ONNX model (kept at `backend/ml/model.onnx`).
 
 ## Database
 
@@ -415,7 +456,7 @@ The database is auto-created on first startup.
 1. **User enters a URL** in the scanner form
 2. **Frontend validates** the URL format and sends it to the backend
 3. **Feature extraction** analyzes 15+ URL characteristics
-4. **Parallel analysis**: ML model (ONNX) predicts phishing probability + Security rules evaluate 8 explainable rules
+4. **Parallel analysis**: ML model (SivakumarP Random Forest on TF-IDF features) predicts phishing probability + Security rules evaluate explainable rules
 5. **Risk engine** combines ML prediction (70%) and rule results (30%) into a final score and classification
 6. **Result stored** in SQLite database
 7. **Response returned** with classification, risk score, ML analysis, indicators, and summary

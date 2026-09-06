@@ -1,0 +1,1302 @@
+{
+  "meta": {
+    "model": "pirocheto/phishing-url-detection",
+    "model_file": "ml/model.onnx",
+    "built_at": "2026-09-06T15:20:33.686602+00:00",
+    "seed": 42,
+    "sources": [
+      "Phishing.Database (mitchellkrogza) - phishing-domains-ACTIVE.txt",
+      "Phishing.Database (mitchellkrogza) - phishing-links-ACTIVE.txt",
+      "Curated legitimate domains (RFC 2606 + major public sites)",
+      "PATTERN phishing URLs (labeled by construction)"
+    ],
+    "counts": {
+      "legit": 114,
+      "phishing": 96,
+      "total": 210
+    },
+    "notes": "The pirocheto model's original training corpus is unknown; the dataset intentionally includes modern SaaS and deployment hosts to probe generalization. PATTERN URLs are synthetic phishing samples labeled by construction, never contacted by the evaluation."
+  },
+  "records": [
+    {
+      "url": "https://twitter.com/",
+      "label": 0,
+      "category": "legit",
+      "source": "CURATED"
+    },
+    {
+      "url": "https://paypal.com%2eexample.com/login",
+      "label": 1,
+      "category": "obfuscation",
+      "source": "PATTERN"
+    },
+    {
+      "url": "https://svelte.vercel.app/",
+      "label": 0,
+      "category": "legit",
+      "source": "CURATED_DEPLOYMENT",
+      "verified": true
+    },
+    {
+      "url": "https://www.cnn.com/",
+      "label": 0,
+      "category": "legit",
+      "source": "CURATED"
+    },
+    {
+      "url": "https://secure.login.verify.account.update.example.com/signin",
+      "label": 1,
+      "category": "subdomain",
+      "source": "PATTERN"
+    },
+    {
+      "url": "https://toagad.com/",
+      "label": 1,
+      "category": "phishing",
+      "source": "PHISHING_DATABASE"
+    },
+    {
+      "url": "https://www.notion.so/",
+      "label": 0,
+      "category": "legit",
+      "source": "CURATED"
+    },
+    {
+      "url": "https://xn--paypal-5we.com/signin",
+      "label": 1,
+      "category": "punycode",
+      "source": "PATTERN"
+    },
+    {
+      "url": "https://intro-trezorbridgedownload.pages.dev/",
+      "label": 1,
+      "category": "phishing",
+      "source": "PHISHING_DATABASE"
+    },
+    {
+      "url": "https://www.whitehouse.gov/",
+      "label": 0,
+      "category": "legit",
+      "source": "CURATED"
+    },
+    {
+      "url": "https://example.org/",
+      "label": 0,
+      "category": "legit",
+      "source": "CURATED"
+    },
+    {
+      "url": "https://docs.netlify.com/",
+      "label": 0,
+      "category": "legit",
+      "source": "CURATED_DEPLOYMENT",
+      "verified": true
+    },
+    {
+      "url": "https://www.netflix.com/",
+      "label": 0,
+      "category": "legit",
+      "source": "CURATED"
+    },
+    {
+      "url": "https://gist.github.com/",
+      "label": 0,
+      "category": "legit",
+      "source": "CURATED"
+    },
+    {
+      "url": "https://discord.com/",
+      "label": 0,
+      "category": "legit",
+      "source": "CURATED"
+    },
+    {
+      "url": "https://www.wellsfargo.com/",
+      "label": 0,
+      "category": "legit",
+      "source": "CURATED"
+    },
+    {
+      "url": "https://google.com/",
+      "label": 0,
+      "category": "legit",
+      "source": "CURATED"
+    },
+    {
+      "url": "https://crates.io/",
+      "label": 0,
+      "category": "legit",
+      "source": "CURATED"
+    },
+    {
+      "url": "http://example.com:8080/verify",
+      "label": 1,
+      "category": "port",
+      "source": "PATTERN"
+    },
+    {
+      "url": "https://x.com/",
+      "label": 0,
+      "category": "legit",
+      "source": "CURATED"
+    },
+    {
+      "url": "https://octocat.github.io/",
+      "label": 0,
+      "category": "legit",
+      "source": "CURATED_DEPLOYMENT",
+      "verified": true
+    },
+    {
+      "url": "https://sera-node.pages.dev/",
+      "label": 1,
+      "category": "phishing",
+      "source": "PHISHING_DATABASE"
+    },
+    {
+      "url": "https://help-center424.crabdance.com/",
+      "label": 1,
+      "category": "phishing",
+      "source": "PHISHING_DATABASE"
+    },
+    {
+      "url": "https://gitlab.com/",
+      "label": 0,
+      "category": "legit",
+      "source": "CURATED"
+    },
+    {
+      "url": "https://telegram.org/",
+      "label": 0,
+      "category": "legit",
+      "source": "CURATED"
+    },
+    {
+      "url": "http://210.211.111.87/~vtjlrgkyhosting/9oi9h2molh81f",
+      "label": 1,
+      "category": "phishing",
+      "source": "PHISHING_DATABASE_LINK"
+    },
+    {
+      "url": "https://example.net/",
+      "label": 0,
+      "category": "legit",
+      "source": "CURATED"
+    },
+    {
+      "url": "https://xn--80ak6aa92e.com/",
+      "label": 1,
+      "category": "punycode",
+      "source": "PATTERN"
+    },
+    {
+      "url": "https://www.paypal.com/",
+      "label": 0,
+      "category": "legit",
+      "source": "CURATED"
+    },
+    {
+      "url": "https://maisconfort.com/",
+      "label": 1,
+      "category": "phishing",
+      "source": "PHISHING_DATABASE"
+    },
+    {
+      "url": "https://www.whatsapp.com/",
+      "label": 0,
+      "category": "legit",
+      "source": "CURATED"
+    },
+    {
+      "url": "https://cloud.google.com/",
+      "label": 0,
+      "category": "legit",
+      "source": "CURATED"
+    },
+    {
+      "url": "https://ql86383-op36638.pages.dev/",
+      "label": 1,
+      "category": "phishing",
+      "source": "PHISHING_DATABASE"
+    },
+    {
+      "url": "https://baysidemanchesters.com/ccs/new-blockchain/index.html",
+      "label": 1,
+      "category": "phishing",
+      "source": "PHISHING_DATABASE_LINK"
+    },
+    {
+      "url": "https://www.spotify.com/",
+      "label": 0,
+      "category": "legit",
+      "source": "CURATED"
+    },
+    {
+      "url": "http://discoveryhostel.com/painter/no_cap/fbg",
+      "label": 1,
+      "category": "phishing",
+      "source": "PHISHING_DATABASE_LINK"
+    },
+    {
+      "url": "https://a.b.c.d.e.f.g.h.example.com/login",
+      "label": 1,
+      "category": "subdomain",
+      "source": "PATTERN"
+    },
+    {
+      "url": "https://freefireeventy7.duckdns.org/",
+      "label": 1,
+      "category": "phishing",
+      "source": "PHISHING_DATABASE"
+    },
+    {
+      "url": "https://www.wsj.com/",
+      "label": 0,
+      "category": "legit",
+      "source": "CURATED"
+    },
+    {
+      "url": "https://alertshop.click/",
+      "label": 1,
+      "category": "phishing",
+      "source": "PHISHING_DATABASE"
+    },
+    {
+      "url": "https://www.slack.com/",
+      "label": 0,
+      "category": "legit",
+      "source": "CURATED"
+    },
+    {
+      "url": "https://chat-whatsapp.join78.gq/",
+      "label": 1,
+      "category": "phishing",
+      "source": "PHISHING_DATABASE"
+    },
+    {
+      "url": "https://duckduckgo.com/",
+      "label": 0,
+      "category": "legit",
+      "source": "CURATED"
+    },
+    {
+      "url": "https://www.github.com/",
+      "label": 0,
+      "category": "legit",
+      "source": "CURATED"
+    },
+    {
+      "url": "https://www.linkedin.com/",
+      "label": 0,
+      "category": "legit",
+      "source": "CURATED"
+    },
+    {
+      "url": "https://m.facebook-marketplace.item300192.com/",
+      "label": 1,
+      "category": "phishing",
+      "source": "PHISHING_DATABASE"
+    },
+    {
+      "url": "https://kubernetes.io/",
+      "label": 0,
+      "category": "legit",
+      "source": "CURATED"
+    },
+    {
+      "url": "https://www.americanexpress.com/",
+      "label": 0,
+      "category": "legit",
+      "source": "CURATED"
+    },
+    {
+      "url": "https://astro.build/",
+      "label": 0,
+      "category": "legit",
+      "source": "CURATED_DEPLOYMENT",
+      "verified": true
+    },
+    {
+      "url": "https://www.ally.com/",
+      "label": 0,
+      "category": "legit",
+      "source": "CURATED"
+    },
+    {
+      "url": "https://bestaboutohio.com/",
+      "label": 1,
+      "category": "phishing",
+      "source": "PHISHING_DATABASE"
+    },
+    {
+      "url": "https://www.irs.gov/",
+      "label": 0,
+      "category": "legit",
+      "source": "CURATED"
+    },
+    {
+      "url": "https://pages.github.com/",
+      "label": 0,
+      "category": "legit",
+      "source": "CURATED_DEPLOYMENT",
+      "verified": true
+    },
+    {
+      "url": "https://boatsandshores.com/",
+      "label": 1,
+      "category": "phishing",
+      "source": "PHISHING_DATABASE"
+    },
+    {
+      "url": "https://bitbucket.org/",
+      "label": 0,
+      "category": "legit",
+      "source": "CURATED"
+    },
+    {
+      "url": "https://example.com/%6C%6F%67%69%6E",
+      "label": 1,
+      "category": "obfuscation",
+      "source": "PATTERN"
+    },
+    {
+      "url": "https://162.241.69.15/50b7912a3c9a43700b3f7f762ff2fa54/confirm.php?country.x=-&reasoncode=04188.166.98.249=codes_list=oam-2=2a13d7472b02c731c8ace5df8cb6abc7s=$1$tvtpjy3z$atn/9c6a1wnwyagqtvrkv01",
+      "label": 1,
+      "category": "phishing",
+      "source": "PHISHING_DATABASE_LINK"
+    },
+    {
+      "url": "https://www.nhs.uk/",
+      "label": 0,
+      "category": "legit",
+      "source": "CURATED"
+    },
+    {
+      "url": "https://example.com/",
+      "label": 0,
+      "category": "legit",
+      "source": "CURATED"
+    },
+    {
+      "url": "https://learnova-ai-8.vercel.app/",
+      "label": 0,
+      "category": "legit",
+      "source": "CURATED_DEPLOYMENT",
+      "verified": true
+    },
+    {
+      "url": "https://search.yahoo.com/",
+      "label": 0,
+      "category": "legit",
+      "source": "CURATED"
+    },
+    {
+      "url": "https://hugo.vercel.app/",
+      "label": 0,
+      "category": "legit",
+      "source": "CURATED_DEPLOYMENT",
+      "verified": true
+    },
+    {
+      "url": "https://vercel.app/",
+      "label": 0,
+      "category": "legit",
+      "source": "CURATED_DEPLOYMENT",
+      "verified": true
+    },
+    {
+      "url": "https://www.atlassian.com/",
+      "label": 0,
+      "category": "legit",
+      "source": "CURATED"
+    },
+    {
+      "url": "https://388a6868d1e12fad83458eb233868e60-dot-gle9392420309493993.rj.r.appspot.com/",
+      "label": 1,
+      "category": "phishing",
+      "source": "PHISHING_DATABASE"
+    },
+    {
+      "url": "https://encogr365helvacenter.github.io/",
+      "label": 1,
+      "category": "phishing",
+      "source": "PHISHING_DATABASE"
+    },
+    {
+      "url": "https://www.usbank.com/",
+      "label": 0,
+      "category": "legit",
+      "source": "CURATED"
+    },
+    {
+      "url": "http://a0673479.xsph.ru/momotruck/dnx/edbcbf24d8fd960/region.php?auth=edbcbf24d8fd960",
+      "label": 1,
+      "category": "phishing",
+      "source": "PHISHING_DATABASE_LINK"
+    },
+    {
+      "url": "https://paypal.me/",
+      "label": 0,
+      "category": "legit",
+      "source": "CURATED"
+    },
+    {
+      "url": "https://aged-sound-0266.on.fleek.co/",
+      "label": 1,
+      "category": "phishing",
+      "source": "PHISHING_DATABASE"
+    },
+    {
+      "url": "https://ronda-est.com/",
+      "label": 1,
+      "category": "phishing",
+      "source": "PHISHING_DATABASE"
+    },
+    {
+      "url": "https://meetaamasskkloggiinnn.gitbook.io/",
+      "label": 1,
+      "category": "phishing",
+      "source": "PHISHING_DATABASE"
+    },
+    {
+      "url": "https://collectmlbb-2022.duckdns.org/",
+      "label": 1,
+      "category": "phishing",
+      "source": "PHISHING_DATABASE"
+    },
+    {
+      "url": "https://www.netlify.app/",
+      "label": 0,
+      "category": "legit",
+      "source": "CURATED_DEPLOYMENT",
+      "verified": true
+    },
+    {
+      "url": "https://btasaqeikgirxdbllhymoqjvjjphjzexryrt-dot-cryptic-now-290917.ey.r.appspot.com/",
+      "label": 1,
+      "category": "phishing",
+      "source": "PHISHING_DATABASE"
+    },
+    {
+      "url": "https://162.241.69.15/fb10ee8bf3c2bd6e4a7987d8c20eb460/verify.php?country_x=-&acct_x=id-ppl=pa32465.154.226.165=scrpg=bc03978ef0868935fb5d80a0785cd16bf099010a2d96fa32f38035e81dedf91as=$1$lrixoxk3$9i.uspivnnsmbd.sut68m/lxn2p8asedrhrmx95cvfvtu1wgpi0khmzinlew7okzyqjds6bua3f4cgoqtyjbpsz9nywx7iy8xzjlolcsmaukvbcqh1rftgfdiet62bkrm5j0u4dgwhv3peoaqn49947292187",
+      "label": 1,
+      "category": "phishing",
+      "source": "PHISHING_DATABASE_LINK"
+    },
+    {
+      "url": "https://npmjs.com/",
+      "label": 0,
+      "category": "legit",
+      "source": "CURATED"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/",
+      "label": 0,
+      "category": "legit",
+      "source": "CURATED"
+    },
+    {
+      "url": "http://192.168.1.100/login.php",
+      "label": 1,
+      "category": "ip",
+      "source": "PATTERN"
+    },
+    {
+      "url": "https://imtoken-etc.pro/",
+      "label": 1,
+      "category": "phishing",
+      "source": "PHISHING_DATABASE"
+    },
+    {
+      "url": "https://amazon-101542.weeblysite.com/",
+      "label": 1,
+      "category": "phishing",
+      "source": "PHISHING_DATABASE"
+    },
+    {
+      "url": "https://www.figma.com/",
+      "label": 0,
+      "category": "legit",
+      "source": "CURATED"
+    },
+    {
+      "url": "https://bedtitan.firebaseapp.com/",
+      "label": 1,
+      "category": "phishing",
+      "source": "PHISHING_DATABASE"
+    },
+    {
+      "url": "https://bigswitch.co.in/",
+      "label": 1,
+      "category": "phishing",
+      "source": "PHISHING_DATABASE"
+    },
+    {
+      "url": "https://aws.amazon.com/",
+      "label": 0,
+      "category": "legit",
+      "source": "CURATED"
+    },
+    {
+      "url": "https://accuratefinserve.in/",
+      "label": 1,
+      "category": "phishing",
+      "source": "PHISHING_DATABASE"
+    },
+    {
+      "url": "https://usps.com-trackotk.top/",
+      "label": 1,
+      "category": "phishing",
+      "source": "PHISHING_DATABASE"
+    },
+    {
+      "url": "https://stripe.com/",
+      "label": 0,
+      "category": "legit",
+      "source": "CURATED"
+    },
+    {
+      "url": "https://hasszda.duckdns.org/",
+      "label": 1,
+      "category": "phishing",
+      "source": "PHISHING_DATABASE"
+    },
+    {
+      "url": "https://legal-associate.com/",
+      "label": 1,
+      "category": "phishing",
+      "source": "PHISHING_DATABASE"
+    },
+    {
+      "url": "https://agitated-shannon-cb7922.netlify.app/",
+      "label": 1,
+      "category": "phishing",
+      "source": "PHISHING_DATABASE"
+    },
+    {
+      "url": "https://apple.xzcrm.com/",
+      "label": 1,
+      "category": "phishing",
+      "source": "PHISHING_DATABASE"
+    },
+    {
+      "url": "https://atacadovirtualbr.com/",
+      "label": 1,
+      "category": "phishing",
+      "source": "PHISHING_DATABASE"
+    },
+    {
+      "url": "https://10ce0817-295f-469e-afaf-38f92d16d450-00-2p5c36e1q26rp.riker.replit.dev/",
+      "label": 1,
+      "category": "phishing",
+      "source": "PHISHING_DATABASE"
+    },
+    {
+      "url": "https://www.apple.com/",
+      "label": 0,
+      "category": "legit",
+      "source": "CURATED"
+    },
+    {
+      "url": "https://3659e.com/",
+      "label": 1,
+      "category": "phishing",
+      "source": "PHISHING_DATABASE"
+    },
+    {
+      "url": "https://beveiligdomgeving.zap732085-1.plesk11.zap-webspace.com/",
+      "label": 1,
+      "category": "phishing",
+      "source": "PHISHING_DATABASE"
+    },
+    {
+      "url": "https://www.ssa.gov/",
+      "label": 0,
+      "category": "legit",
+      "source": "CURATED"
+    },
+    {
+      "url": "https://app.getresponse.com/site2/a789c973fa45012c0a5415136ed6210d/?u=tmntc&webforms_id=ztyie",
+      "label": 1,
+      "category": "phishing",
+      "source": "PHISHING_DATABASE_LINK"
+    },
+    {
+      "url": "https://www.dropbox.com/",
+      "label": 0,
+      "category": "legit",
+      "source": "CURATED"
+    },
+    {
+      "url": "https://www.gov.uk/",
+      "label": 0,
+      "category": "legit",
+      "source": "CURATED"
+    },
+    {
+      "url": "https://docs.github.com/",
+      "label": 0,
+      "category": "legit",
+      "source": "CURATED_DEPLOYMENT",
+      "verified": true
+    },
+    {
+      "url": "https://svelte.netlify.app/",
+      "label": 0,
+      "category": "legit",
+      "source": "CURATED_DEPLOYMENT",
+      "verified": true
+    },
+    {
+      "url": "https://fantastic-mousy-ear.glitch.me/",
+      "label": 1,
+      "category": "phishing",
+      "source": "PHISHING_DATABASE"
+    },
+    {
+      "url": "https://www.bankofamerica.com/",
+      "label": 0,
+      "category": "legit",
+      "source": "CURATED"
+    },
+    {
+      "url": "https://learn.microsoft.com/",
+      "label": 0,
+      "category": "legit",
+      "source": "CURATED"
+    },
+    {
+      "url": "https://aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.example.com/verify",
+      "label": 1,
+      "category": "long",
+      "source": "PATTERN"
+    },
+    {
+      "url": "https://web3-check.com/",
+      "label": 1,
+      "category": "phishing",
+      "source": "PHISHING_DATABASE"
+    },
+    {
+      "url": "https://www.docker.com/",
+      "label": 0,
+      "category": "legit",
+      "source": "CURATED"
+    },
+    {
+      "url": "https://login.secure.example.com/update-account?redirect=https://evil.example.com",
+      "label": 1,
+      "category": "keyword",
+      "source": "PATTERN"
+    },
+    {
+      "url": "https://www.netlify.com/",
+      "label": 0,
+      "category": "legit",
+      "source": "CURATED_DEPLOYMENT",
+      "verified": true
+    },
+    {
+      "url": "https://www.google.com/",
+      "label": 0,
+      "category": "legit",
+      "source": "CURATED"
+    },
+    {
+      "url": "https://app.netlify.com/",
+      "label": 0,
+      "category": "legit",
+      "source": "CURATED_DEPLOYMENT",
+      "verified": true
+    },
+    {
+      "url": "https://outlook.live.com/",
+      "label": 0,
+      "category": "legit",
+      "source": "CURATED"
+    },
+    {
+      "url": "https://paypal.com@192.168.1.100/login",
+      "label": 1,
+      "category": "at",
+      "source": "PATTERN"
+    },
+    {
+      "url": "https://examples.vercel.app/",
+      "label": 0,
+      "category": "legit",
+      "source": "CURATED_DEPLOYMENT",
+      "verified": true
+    },
+    {
+      "url": "https://vercel.com/docs",
+      "label": 0,
+      "category": "legit",
+      "source": "CURATED_DEPLOYMENT",
+      "verified": true
+    },
+    {
+      "url": "https://business-poste.life",
+      "label": 1,
+      "category": "phishing",
+      "source": "PHISHING_DATABASE_LINK"
+    },
+    {
+      "url": "https://nciq.iralux.lu/",
+      "label": 1,
+      "category": "phishing",
+      "source": "PHISHING_DATABASE"
+    },
+    {
+      "url": "https://franceregion-union.telecominication.fr.u1164326hzu.ha004.t.justns.ru/",
+      "label": 1,
+      "category": "phishing",
+      "source": "PHISHING_DATABASE"
+    },
+    {
+      "url": "https://example.com:8443/signin/password",
+      "label": 1,
+      "category": "port",
+      "source": "PATTERN"
+    },
+    {
+      "url": "http://savingclubhome.com/afcu/domain",
+      "label": 1,
+      "category": "phishing",
+      "source": "PHISHING_DATABASE_LINK"
+    },
+    {
+      "url": "https://ainndtzzttvywpfwozl.93399426.ca/",
+      "label": 1,
+      "category": "phishing",
+      "source": "PHISHING_DATABASE"
+    },
+    {
+      "url": "https://www.treasury.gov/",
+      "label": 0,
+      "category": "legit",
+      "source": "CURATED"
+    },
+    {
+      "url": "https://adobe-docs-privacy.us-south.cf.appdomain.cloud/",
+      "label": 1,
+      "category": "phishing",
+      "source": "PHISHING_DATABASE"
+    },
+    {
+      "url": "https://www.amazon.com/",
+      "label": 0,
+      "category": "legit",
+      "source": "CURATED"
+    },
+    {
+      "url": "https://azure.microsoft.com/",
+      "label": 0,
+      "category": "legit",
+      "source": "CURATED"
+    },
+    {
+      "url": "https://codashop-eventnew08.duckdns.org/",
+      "label": 1,
+      "category": "phishing",
+      "source": "PHISHING_DATABASE"
+    },
+    {
+      "url": "https://nmunldymfzoczmiewcbylmobce-dot-glmar9393293232323.uk.r.appspot.com/",
+      "label": 1,
+      "category": "phishing",
+      "source": "PHISHING_DATABASE"
+    },
+    {
+      "url": "https://example.com/%256C%256F%2567%2569%256E",
+      "label": 1,
+      "category": "obfuscation",
+      "source": "PATTERN"
+    },
+    {
+      "url": "https://www.tiktok.com/",
+      "label": 0,
+      "category": "legit",
+      "source": "CURATED"
+    },
+    {
+      "url": "https://developer.mozilla.org/",
+      "label": 0,
+      "category": "legit",
+      "source": "CURATED"
+    },
+    {
+      "url": "https://medium.com/",
+      "label": 0,
+      "category": "legit",
+      "source": "CURATED"
+    },
+    {
+      "url": "https://www.heroku.com/",
+      "label": 0,
+      "category": "legit",
+      "source": "CURATED"
+    },
+    {
+      "url": "https://www.walmart.com/",
+      "label": 0,
+      "category": "legit",
+      "source": "CURATED"
+    },
+    {
+      "url": "https://vercel.com/",
+      "label": 0,
+      "category": "legit",
+      "source": "CURATED_DEPLOYMENT",
+      "verified": true
+    },
+    {
+      "url": "https://www.instagram.com/",
+      "label": 0,
+      "category": "legit",
+      "source": "CURATED"
+    },
+    {
+      "url": "https://www.homedepot.com/",
+      "label": 0,
+      "category": "legit",
+      "source": "CURATED"
+    },
+    {
+      "url": "https://2wbv1uqy6twekwhmqu66aw41f561zoet.ocalam.com/",
+      "label": 1,
+      "category": "phishing",
+      "source": "PHISHING_DATABASE"
+    },
+    {
+      "url": "https://annzon-ivgrc-co-jp.ftshj.top/",
+      "label": 1,
+      "category": "phishing",
+      "source": "PHISHING_DATABASE"
+    },
+    {
+      "url": "https://north-ring-pin.glitch.me/",
+      "label": 1,
+      "category": "phishing",
+      "source": "PHISHING_DATABASE"
+    },
+    {
+      "url": "https://www.microsoft.com/",
+      "label": 0,
+      "category": "legit",
+      "source": "CURATED"
+    },
+    {
+      "url": "https://www.verify-account-update-password.example.com/confirm",
+      "label": 1,
+      "category": "keyword",
+      "source": "PATTERN"
+    },
+    {
+      "url": "https://erikx.sexxyfemaledolls.com/",
+      "label": 1,
+      "category": "phishing",
+      "source": "PHISHING_DATABASE"
+    },
+    {
+      "url": "https://www.capitalone.com/",
+      "label": 0,
+      "category": "legit",
+      "source": "CURATED"
+    },
+    {
+      "url": "https://www.ibm.com/",
+      "label": 0,
+      "category": "legit",
+      "source": "CURATED"
+    },
+    {
+      "url": "https://alertboi365login.com/",
+      "label": 1,
+      "category": "phishing",
+      "source": "PHISHING_DATABASE"
+    },
+    {
+      "url": "https://stackoverflow.com/",
+      "label": 0,
+      "category": "legit",
+      "source": "CURATED"
+    },
+    {
+      "url": "https://www.cloudflare.com/",
+      "label": 0,
+      "category": "legit",
+      "source": "CURATED"
+    },
+    {
+      "url": "https://nationcommerceconsulting.com/",
+      "label": 1,
+      "category": "phishing",
+      "source": "PHISHING_DATABASE"
+    },
+    {
+      "url": "https://www.bestbuy.com/",
+      "label": 0,
+      "category": "legit",
+      "source": "CURATED"
+    },
+    {
+      "url": "https://www.citi.com/",
+      "label": 0,
+      "category": "legit",
+      "source": "CURATED"
+    },
+    {
+      "url": "https://postoffice-reschedule-status.com/",
+      "label": 1,
+      "category": "phishing",
+      "source": "PHISHING_DATABASE"
+    },
+    {
+      "url": "https://pypi.org/",
+      "label": 0,
+      "category": "legit",
+      "source": "CURATED"
+    },
+    {
+      "url": "https://nextjs.org/",
+      "label": 0,
+      "category": "legit",
+      "source": "CURATED_DEPLOYMENT",
+      "verified": true
+    },
+    {
+      "url": "https://paypal.com/",
+      "label": 0,
+      "category": "legit",
+      "source": "CURATED"
+    },
+    {
+      "url": "https://3.225.156.42/",
+      "label": 1,
+      "category": "phishing",
+      "source": "PHISHING_DATABASE"
+    },
+    {
+      "url": "https://wefrgbtre.blogspot.com/",
+      "label": 1,
+      "category": "phishing",
+      "source": "PHISHING_DATABASE"
+    },
+    {
+      "url": "https://github.com/",
+      "label": 0,
+      "category": "legit",
+      "source": "CURATED"
+    },
+    {
+      "url": "https://www.wordpress.org/",
+      "label": 0,
+      "category": "legit",
+      "source": "CURATED"
+    },
+    {
+      "url": "http://2130706433/admin",
+      "label": 1,
+      "category": "ip",
+      "source": "PATTERN"
+    },
+    {
+      "url": "https://www.nytimes.com/",
+      "label": 0,
+      "category": "legit",
+      "source": "CURATED"
+    },
+    {
+      "url": "https://www.target.com/",
+      "label": 0,
+      "category": "legit",
+      "source": "CURATED"
+    },
+    {
+      "url": "https://es.wikipedia.org/",
+      "label": 0,
+      "category": "legit",
+      "source": "CURATED"
+    },
+    {
+      "url": "https://create-next-app.vercel.app/",
+      "label": 0,
+      "category": "legit",
+      "source": "CURATED_DEPLOYMENT",
+      "verified": true
+    },
+    {
+      "url": "https://www.google.com@phish.example.com/account-verify",
+      "label": 1,
+      "category": "at",
+      "source": "PATTERN"
+    },
+    {
+      "url": "https://xn--ggle-0ra.com/login",
+      "label": 1,
+      "category": "punycode",
+      "source": "PATTERN"
+    },
+    {
+      "url": "https://www.bbc.com/",
+      "label": 0,
+      "category": "legit",
+      "source": "CURATED"
+    },
+    {
+      "url": "https://example.com@evil-site.net/paypal/login",
+      "label": 1,
+      "category": "at",
+      "source": "PATTERN"
+    },
+    {
+      "url": "https://www.reddit.com/",
+      "label": 0,
+      "category": "legit",
+      "source": "CURATED"
+    },
+    {
+      "url": "http://naatsharif.cu.ma/~gntcncum/d/h/l/ex-press/document-/=46d37d3ffe90b3e56482e0726a2ff729cad88d5916aeb3e4a2a1d3c8889afd000dffdd18fe1509450bde3c1eebdef4be/tracking2.php",
+      "label": 1,
+      "category": "phishing",
+      "source": "PHISHING_DATABASE_LINK"
+    },
+    {
+      "url": "https://www.bbc.co.uk/",
+      "label": 0,
+      "category": "legit",
+      "source": "CURATED"
+    },
+    {
+      "url": "https://example.com/?p0=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx&p1=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx&p2=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx&p3=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx&p4=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx&p5=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx&p6=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx&p7=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx&p8=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx&p9=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx&p10=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx&p11=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+      "label": 1,
+      "category": "long",
+      "source": "PATTERN"
+    },
+    {
+      "url": "https://www.youtube.com/",
+      "label": 0,
+      "category": "legit",
+      "source": "CURATED"
+    },
+    {
+      "url": "https://www.example.com/",
+      "label": 0,
+      "category": "legit",
+      "source": "CURATED"
+    },
+    {
+      "url": "https://www.chase.com/",
+      "label": 0,
+      "category": "legit",
+      "source": "CURATED"
+    },
+    {
+      "url": "https://att-103151.weeblysite.com/",
+      "label": 1,
+      "category": "phishing",
+      "source": "PHISHING_DATABASE"
+    },
+    {
+      "url": "https://pfeinb4nd0n0.vercel.app/",
+      "label": 1,
+      "category": "phishing",
+      "source": "PHISHING_DATABASE"
+    },
+    {
+      "url": "https://www.salesforce.com/",
+      "label": 0,
+      "category": "legit",
+      "source": "CURATED"
+    },
+    {
+      "url": "https://decapcms.netlify.app/",
+      "label": 0,
+      "category": "legit",
+      "source": "CURATED_DEPLOYMENT",
+      "verified": true
+    },
+    {
+      "url": "https://secure-login-verify-account-update.example.com/bank",
+      "label": 1,
+      "category": "keyword",
+      "source": "PATTERN"
+    },
+    {
+      "url": "http://cb06666.tmweb.ru/clcmesvsqpaoe",
+      "label": 1,
+      "category": "phishing",
+      "source": "PHISHING_DATABASE_LINK"
+    },
+    {
+      "url": "https://588711p5889632541.filesusr.com/",
+      "label": 1,
+      "category": "phishing",
+      "source": "PHISHING_DATABASE"
+    },
+    {
+      "url": "https://cairocbc.com/vendor/phpunit/phpunit/src/Util/PHP/dhl/GlobalSources/?email=mia@entro-co.com",
+      "label": 1,
+      "category": "phishing",
+      "source": "PHISHING_DATABASE_LINK"
+    },
+    {
+      "url": "https://www.digitalocean.com/",
+      "label": 0,
+      "category": "legit",
+      "source": "CURATED"
+    },
+    {
+      "url": "https://mediafire-firal-234.duckdns.org/",
+      "label": 1,
+      "category": "phishing",
+      "source": "PHISHING_DATABASE"
+    },
+    {
+      "url": "https://www.paypa1.com/signin",
+      "label": 1,
+      "category": "impersonation",
+      "source": "PATTERN"
+    },
+    {
+      "url": "https://co.jandigitalstudios.com/",
+      "label": 1,
+      "category": "phishing",
+      "source": "PHISHING_DATABASE"
+    },
+    {
+      "url": "https://hello-world-throbbing-heart-b2fd.derzuteydo.workers.dev/",
+      "label": 1,
+      "category": "phishing",
+      "source": "PHISHING_DATABASE"
+    },
+    {
+      "url": "https://www.oracle.com/",
+      "label": 0,
+      "category": "legit",
+      "source": "CURATED"
+    },
+    {
+      "url": "https://www.shopify.com/",
+      "label": 0,
+      "category": "legit",
+      "source": "CURATED"
+    },
+    {
+      "url": "https://en.wikipedia.org/",
+      "label": 0,
+      "category": "legit",
+      "source": "CURATED"
+    },
+    {
+      "url": "https://drive.google.com/",
+      "label": 0,
+      "category": "legit",
+      "source": "CURATED"
+    },
+    {
+      "url": "https://www.bing.com/",
+      "label": 0,
+      "category": "legit",
+      "source": "CURATED"
+    },
+    {
+      "url": "https://gohugo.netlify.app/",
+      "label": 0,
+      "category": "legit",
+      "source": "CURATED_DEPLOYMENT",
+      "verified": true
+    },
+    {
+      "url": "https://rljbmmacdwudamesttxjdyuohmwnifoopgzj-dot-gl494903049.wl.r.appspot.com/",
+      "label": 1,
+      "category": "phishing",
+      "source": "PHISHING_DATABASE"
+    },
+    {
+      "url": "https://www.wikipedia.org/",
+      "label": 0,
+      "category": "legit",
+      "source": "CURATED"
+    },
+    {
+      "url": "https://bafybeiddjbevvhsxhowx2vurmfrmeyomt5s3zgxyixufguetghgjwylbde.ipfs.cf-ipfs.com/",
+      "label": 1,
+      "category": "phishing",
+      "source": "PHISHING_DATABASE"
+    },
+    {
+      "url": "https://EXAMPLE.COM@evil-site.net/PaYpAl/LoGiN",
+      "label": 1,
+      "category": "impersonation",
+      "source": "PATTERN"
+    },
+    {
+      "url": "https://meta-law-kyc.buzz/",
+      "label": 1,
+      "category": "phishing",
+      "source": "PHISHING_DATABASE"
+    },
+    {
+      "url": "https://microsoft.com/",
+      "label": 0,
+      "category": "legit",
+      "source": "CURATED"
+    },
+    {
+      "url": "http://203.0.113.10/verify-account",
+      "label": 1,
+      "category": "ip",
+      "source": "PATTERN"
+    },
+    {
+      "url": "https://www.facebook.com/",
+      "label": 0,
+      "category": "legit",
+      "source": "CURATED"
+    },
+    {
+      "url": "https://www.adobe.com/",
+      "label": 0,
+      "category": "legit",
+      "source": "CURATED"
+    },
+    {
+      "url": "https://zoom.us/",
+      "label": 0,
+      "category": "legit",
+      "source": "CURATED"
+    },
+    {
+      "url": "https://www.airbnb.com/",
+      "label": 0,
+      "category": "legit",
+      "source": "CURATED"
+    },
+    {
+      "url": "https://94.130.44.214/secure/paypal/login",
+      "label": 1,
+      "category": "ip",
+      "source": "PATTERN"
+    },
+    {
+      "url": "https://mail.google.com/",
+      "label": 0,
+      "category": "legit",
+      "source": "CURATED"
+    },
+    {
+      "url": "https://support.microsoft.com/",
+      "label": 0,
+      "category": "legit",
+      "source": "CURATED"
+    },
+    {
+      "url": "https://event-codashop70.duckdns.org/",
+      "label": 1,
+      "category": "phishing",
+      "source": "PHISHING_DATABASE"
+    }
+  ]
+}

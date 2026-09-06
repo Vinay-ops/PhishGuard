@@ -60,6 +60,7 @@ function AnalysisResultPage() {
   const [error, setError] = useState(null)
   const [copied, setCopied] = useState(false)
   const [featuresOpen, setFeaturesOpen] = useState(false)
+  const [whyOpen, setWhyOpen] = useState(true)
 
   // Resolve the page content:
   //  1. A live result passed via navigation state (fresh analysis).
@@ -177,7 +178,8 @@ function AnalysisResultPage() {
   const tone = CLASS_TONES[classification] || 'danger'
   const scannedUrl = result.url || paramUrl || ''
   const riskScore = result.riskScore ?? 0
-  const confidence = result.confidence ?? 0
+  const mlPct = result.mlPhishingProbabilityPct ?? result.confidence ?? 0
+  const modelRuleStatus = result.modelRuleStatus ?? result.phishingAnalysis?.model_rule_status ?? null
   const indicators = result.detectedIndicators ?? []
   const rules = result.rules ?? []
   const features = result.features ?? {}
@@ -187,9 +189,16 @@ function AnalysisResultPage() {
   const headerAnalysis = result.headerAnalysis ?? {}
   const riskBreakdown = result.riskBreakdown ?? {}
   const topFactors = result.topFactors ?? []
+  const whyFlagged = result.whyFlagged ?? null
   const modelInfo = result.modelInfo ?? {}
   const phishingAnalysis = result.phishingAnalysis ?? {}
   const httpSecurity = result.httpSecurity ?? {}
+
+  // Determine if this is a model-rule disagreement display.
+  const isDisagreement = modelRuleStatus === 'MODEL-RULE DISAGREEMENT'
+  const displayClassification = isDisagreement
+    ? `${classification} — MODEL WARNING`
+    : classification
 
   const handleCopy = async () => {
     try {
@@ -295,7 +304,7 @@ function AnalysisResultPage() {
                 <span className="kv-label">Security Status</span>
                 <div className="verdict-pill d-inline-flex align-items-center gap-2 mt-2">
                   <i className="bi bi-shield-check" aria-hidden="true"></i>
-                  <span className="text-uppercase">{classification}</span>
+                  <span className="text-uppercase">{displayClassification}</span>
                 </div>
 
                 <div className="row g-4 mt-1">
@@ -315,15 +324,15 @@ function AnalysisResultPage() {
                   </div>
                   <div className="col-12 col-sm-6">
                     <div className="d-flex justify-content-between align-items-baseline">
-                      <span className="kv-label">Confidence</span>
+                      <span className="kv-label">ML Phishing Probability</span>
                       <span className="metric-value text-primary">
-                        {confidence}%
+                        {mlPct}%
                       </span>
                     </div>
                     <div className="progress pg-progress mt-2" role="presentation">
                       <div
                         className="progress-bar bar-ml"
-                        style={{ width: `${confidence}%` }}
+                        style={{ width: `${mlPct}%` }}
                       ></div>
                     </div>
                   </div>
@@ -331,11 +340,13 @@ function AnalysisResultPage() {
 
                 <p className="verdict-note mt-4 mb-0">
                   <i className="bi bi-shield-exclamation me-2" aria-hidden="true"></i>
-                  {tone === 'success'
-                    ? 'No obvious threats detected — always verify unfamiliar sites before sharing information.'
-                    : tone === 'warning'
-                      ? 'Exercise caution: treat this URL as unverified until you confirm its source.'
-                      : 'Do not enter personal information or credentials on this URL.'}
+                  {isDisagreement
+                    ? 'The ML model assigns a high phishing probability, but no phishing-specific URL indicators were detected. This model-rule disagreement should be independently verified.'
+                    : tone === 'success'
+                      ? 'No obvious threats detected — always verify unfamiliar sites before sharing information.'
+                      : tone === 'warning'
+                        ? 'Exercise caution: treat this URL as unverified until you confirm its source.'
+                        : 'Do not enter personal information or credentials on this URL.'}
                 </p>
               </div>
             </div>
@@ -352,7 +363,7 @@ function AnalysisResultPage() {
               <h2 className="result-section-title mt-2">Machine Learning Analysis</h2>
               <p className="result-section-sub mx-auto">
                 {mlAnalysis.available
-                  ? 'The ONNX model provides a probabilistic interpretation, not absolute proof of intent.'
+                  ? 'Model prediction — an estimated phishing probability, not independent confirmation.'
                   : 'ML model is currently unavailable. Rule-based analysis is still active.'}
               </p>
             </div>
@@ -389,8 +400,8 @@ function AnalysisResultPage() {
                         <br />
                         <small className="text-secondary">
                           {mlAnalysis.prediction === 'PHISHING'
-                            ? 'Model predicts this URL is likely phishing'
-                            : 'Model predicts this URL is likely safe'}
+                            ? 'Model prediction: estimated phishing'
+                            : 'Model prediction: estimated safe'}
                         </small>
                       </span>
                       <span
@@ -416,7 +427,7 @@ function AnalysisResultPage() {
                         <strong>Phishing Probability</strong>
                         <br />
                         <small className="text-secondary">
-                          Likelihood that this URL is a phishing attempt
+                          Estimated probability that this URL is phishing (model prediction)
                         </small>
                       </span>
                       <span
@@ -444,7 +455,7 @@ function AnalysisResultPage() {
                         <strong>Safe Probability</strong>
                         <br />
                         <small className="text-secondary">
-                          Likelihood that this URL is legitimate
+                          Estimated probability that this URL is safe (model prediction)
                         </small>
                       </span>
                       <span
@@ -485,38 +496,109 @@ function AnalysisResultPage() {
       </section>
 
       {/* ---- Explainability --------------------------------------------- */}
-      {topFactors.length > 0 && (
+      {(topFactors.length > 0 || whyFlagged) && (
         <section className="pb-5">
           <div className="container">
             <div className="row justify-content-center text-center mb-4">
               <div className="col-12 col-lg-8">
-                <span className="section-eyebrow">Explainability</span>
-                <h2 className="result-section-title mt-2">Why Was This Flagged?</h2>
-                <p className="result-section-sub mx-auto">These factors correspond to signals actually returned by the model or rule checks.</p>
+              <span className="section-eyebrow">Explainability</span>
+              <h2 className="result-section-title mt-2">Why Was This Flagged?</h2>
+              <p className="result-section-sub mx-auto">
+                Evidence-based analysis separated into phishing evidence, model warnings, and security hardening findings.
+              </p>
               </div>
             </div>
             <div className="row justify-content-center">
               <div className="col-12 col-lg-8">
                 <div className="card pg-card p-4">
-                  <ol className="list-unstyled mb-0">
-                    <li className="rule-row">
+                  {/* --- Model / Rule Status Header --- */}
+                  {modelRuleStatus && (
+                    <div className="d-flex align-items-center gap-2 mb-3 pb-3 border-bottom">
                       <i className="bi bi-diagram-3-fill tone-info" aria-hidden="true"></i>
-                      <span className="flex-grow-1">
-                        <strong>Model / rule assessment</strong>
-                        <br />
-                        <small className="text-secondary">
-                          {phishingAnalysis.model_rule_status || 'Not available'}
-                        </small>
+                      <span>
+                        <strong>Assessment:</strong>{' '}
+                        <span className={isDisagreement ? 'tone-danger' : 'tone-success'}>
+                          {modelRuleStatus}
+                        </span>
                       </span>
-                    </li>
-                    {topFactors.map((factor) => (
-                      <li className="rule-row" key={factor}>
-                        <i className="bi bi-exclamation-triangle-fill tone-warning" aria-hidden="true"></i>
-                        <span className="flex-grow-1">{factor}</span>
-                      </li>
-                    ))}
-                  </ol>
-                  <small className="text-secondary d-block mt-3">HTTPS and certificate status describe connection security; they do not prove that a site is legitimate.</small>
+                    </div>
+                  )}
+
+                  {/* --- DIRECT PHISHING EVIDENCE --- */}
+                  <div className="mb-3">
+                    <h3 className="h6 fw-semibold mb-2">
+                      <i className="bi bi-exclamation-octagon-fill tone-danger me-2" aria-hidden="true"></i>
+                      Direct Phishing Evidence
+                    </h3>
+                    {whyFlagged?.phishing_evidence?.length > 0 ? (
+                      <ul className="list-unstyled mb-0">
+                        {whyFlagged.phishing_evidence.map((ev) => (
+                          <li className="rule-row" key={ev.rule}>
+                            <span className={`status-badge tone-${SEVERITY_TONE[ev.severity] || 'secondary'}`}>
+                              {ev.severity?.toUpperCase()}
+                            </span>
+                            <span className="flex-grow-1">
+                              <strong>{ev.rule}</strong>
+                              <br />
+                              <small className="text-secondary">{ev.description}</small>
+                            </span>
+                            {ev.value && <small className="text-secondary">{ev.value}</small>}
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p className="text-secondary mb-0">
+                        <i className="bi bi-check-circle-fill tone-success me-1" aria-hidden="true"></i>
+                        0 phishing-specific indicators detected.
+                      </p>
+                    )}
+                  </div>
+
+                  {/* --- MODEL WARNING --- */}
+                  {whyFlagged?.model_warning && (
+                    <div className="mb-3">
+                      <h3 className="h6 fw-semibold mb-2">
+                        <i className="bi bi-exclamation-triangle-fill tone-warning me-2" aria-hidden="true"></i>
+                        Model Warning
+                      </h3>
+                      <div className="d-flex align-items-start gap-2">
+                        <span className="status-badge tone-danger">ML MODEL</span>
+                        <span className="flex-grow-1">
+                          <small className="text-secondary">
+                            {whyFlagged.model_warning.message}
+                          </small>
+                        </span>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* --- SECURITY HARDENING FINDINGS --- */}
+                  {whyFlagged?.hardening_findings?.length > 0 && (
+                    <div className="mb-0">
+                      <h3 className="h6 fw-semibold mb-2">
+                        <i className="bi bi-info-circle-fill tone-info me-2" aria-hidden="true"></i>
+                        Security Hardening Findings
+                      </h3>
+                      <ul className="list-unstyled mb-0">
+                        {whyFlagged.hardening_findings.map((finding) => (
+                          <li className="rule-row" key={finding.category}>
+                            <span className={`status-badge ${finding.status === 'VERIFIED' ? 'tone-success' : finding.status === 'PRESENT' ? 'tone-success' : 'tone-warning'}`}>
+                              {finding.status}
+                            </span>
+                            <span className="flex-grow-1">
+                              <strong>{finding.category}</strong>
+                              <br />
+                              <small className="text-secondary">{finding.message}</small>
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  <small className="text-secondary d-block mt-3">
+                    TLS and HTTP hardening describe connection and transport security. They do not prove that a site is legitimate or illegitimate.
+                  </small>
                 </div>
               </div>
             </div>
@@ -529,10 +611,10 @@ function AnalysisResultPage() {
         <div className="container">
           <div className="row justify-content-center text-center mb-4">
             <div className="col-12 col-lg-8">
-              <span className="section-eyebrow">Weighted Decision</span>
+              <span className="section-eyebrow">Heuristic Weights</span>
               <h2 className="result-section-title mt-2">Security Risk Breakdown</h2>
               <p className="result-section-sub mx-auto">
-                Final phishing risk uses only ML probability and phishing-specific URL rules. Connection and HTTP hardening are separate dimensions.
+                Final phishing risk uses heuristic weights: ML probability (70%) + URL rule risk (30%). These weights are not statistically validated. TLS and HTTP hardening are reported as separate security dimensions.
               </p>
             </div>
           </div>
@@ -642,8 +724,8 @@ function AnalysisResultPage() {
               <h2 className="result-section-title mt-2">Detected Indicators</h2>
               <p className="result-section-sub mx-auto">
                 {indicators.length > 0
-                  ? `${indicators.length} indicator(s) flagged by the security rules engine.`
-                  : 'No major phishing indicators were detected.'}
+                  ? `${indicators.length} phishing-specific indicator(s) flagged by the security rules engine.`
+                  : '0 phishing-specific indicators detected.'}
               </p>
             </div>
           </div>
@@ -683,9 +765,6 @@ function AnalysisResultPage() {
               <div className="col-12 col-lg-8 text-center">
                 <div className="card pg-card p-4">
                   <i className="bi bi-check-circle-fill text-success" style={{ fontSize: '2rem' }} aria-hidden="true"></i>
-                  <p className="text-secondary mt-2 mb-0">
-                    No major phishing indicators were detected.
-                  </p>
                 </div>
               </div>
             </div>

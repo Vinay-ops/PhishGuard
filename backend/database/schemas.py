@@ -92,6 +92,8 @@ class AnalyzeResponse(BaseModel):
     classification: str
     risk_score: int = Field(..., ge=0, le=100)
     confidence: int = Field(..., ge=0, le=100)
+    ml_phishing_probability_pct: Optional[int] = Field(None, ge=0, le=100)
+    model_rule_status: Optional[str] = None
     message: str
     detected_indicators: List[SecurityIndicator] = []
     summary: str = ""
@@ -102,6 +104,7 @@ class AnalyzeResponse(BaseModel):
     header_analysis: dict = {}
     risk_breakdown: dict = {}
     top_factors: List[str] = []
+    why_flagged: Optional[dict] = None
     rule_analysis: dict = {}
     connection_security: dict = {}
     model_info: dict = {}

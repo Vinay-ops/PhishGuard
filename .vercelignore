@@ -1,0 +1,20 @@
+# Dev/benchmark tooling must not be deployed (includes large downloaded
+# candidate models in backend/benchmark/models/).
+backend/benchmark/
+
+# Local-only files (also in .gitignore, listed here for Vercel CLI).
+backend/venv/
+node_modules/
+frontend/node_modules/
+frontend/dist/
+dist/
+
+# Vercel link metadata / env
+.vercel/
+.env.local
+
+# Frontend build-time env must never override the same-origin API path on
+# Vercel. Excluding these means production builds use the /api/v1 fallback
+# (or the Vercel-project VITE_API_BASE_URL env var) instead of a local URL.
+frontend/.env
+frontend/.env.*

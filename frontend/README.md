@@ -82,5 +82,6 @@ python -m venv venv          # one-time setup (if not present)
 ```
 
 CORS allows `http://localhost:5173` and `http://127.0.0.1:5173`. The
-`/analyze` endpoint is structured so the ML model (ONNX Runtime) and the
-SQLite database can be added later without changing the API contract.
+`/analyze` endpoint is structured so the ML model (SivakumarP Random
+Forest; see the root README) and the
+SQLite database can be swapped without changing the API contract.
