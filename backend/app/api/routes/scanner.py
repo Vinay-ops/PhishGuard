@@ -74,7 +74,10 @@ def analyze(request: AnalyzeRequest, db: Session = Depends(get_db)):
                 "risk_breakdown": result.get("risk_breakdown", {}),
                 "top_factors": result.get("top_factors", []),
                 "rule_analysis": result.get("rule_analysis", {}),
+                "phishing_analysis": result.get("phishing_analysis", {}),
                 "connection_security": result.get("connection_security", {}),
+                "http_security": result.get("http_security", {}),
+                "final_assessment": result.get("final_assessment", {}),
                 "model_info": result.get("model_info", {}),
             }),
         )

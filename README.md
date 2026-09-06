@@ -179,17 +179,17 @@ the ML model.
 The final risk score is a documented heuristic, not a calibrated probability:
 
 ```
-final risk = ML probability * 45%
-           + URL phishing-rule risk * 25%
-           + TLS connection risk * 15%
-           + HTTP header risk * 15%
+final phishing risk = ML phishing probability * 70%
+                    + URL phishing-rule risk * 30%
 ```
 
-TLS and header risk are the inverse of their respective security scores.
-Unavailable network checks contribute zero rather than being treated as
+TLS connection security and HTTP hardening are separate dimensions and never
+enter this phishing-risk formula. Unavailable network checks do not become
 phishing evidence. Missing HTTPS remains visible as a transport warning but
-does not inflate the URL phishing-rule score. The API returns each component,
-weight, and weighted contribution so the final integer is reproducible.
+does not inflate the URL phishing-rule score. The API returns each phishing
+component, weight, and weighted contribution so the final integer is
+reproducible, along with separate `connection_security` and `http_security`
+objects.
 
 The model is loaded once per Python process from the trusted repository file
 `backend/ml/model.onnx`; there is no uploaded-model endpoint and no model

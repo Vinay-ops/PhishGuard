@@ -79,6 +79,8 @@ class MlAnalysis(BaseModel):
     safe_probability: Optional[float] = None
     model_name: Optional[str] = None
     error: Optional[str] = None
+    predicted_label: Optional[str] = None
+    model_status: Optional[str] = None
 
 
 # --- Response schemas -------------------------------------------------------
@@ -103,6 +105,9 @@ class AnalyzeResponse(BaseModel):
     rule_analysis: dict = {}
     connection_security: dict = {}
     model_info: dict = {}
+    phishing_analysis: dict = {}
+    http_security: dict = {}
+    final_assessment: dict = {}
 
 
 class ScanRecordResponse(BaseModel):

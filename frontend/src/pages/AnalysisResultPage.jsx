@@ -35,8 +35,6 @@ const FEATURE_SKIP = new Set(['hostname', 'path', 'query_present'])
 const RISK_COMPONENTS = [
   ['ml', 'Machine learning'],
   ['url_rules', 'URL rules'],
-  ['tls', 'TLS / SSL'],
-  ['headers', 'HTTP headers'],
 ]
 
 const HEADER_LABELS = {
@@ -190,6 +188,8 @@ function AnalysisResultPage() {
   const riskBreakdown = result.riskBreakdown ?? {}
   const topFactors = result.topFactors ?? []
   const modelInfo = result.modelInfo ?? {}
+  const phishingAnalysis = result.phishingAnalysis ?? {}
+  const httpSecurity = result.httpSecurity ?? {}
 
   const handleCopy = async () => {
     try {
@@ -499,6 +499,16 @@ function AnalysisResultPage() {
               <div className="col-12 col-lg-8">
                 <div className="card pg-card p-4">
                   <ol className="list-unstyled mb-0">
+                    <li className="rule-row">
+                      <i className="bi bi-diagram-3-fill tone-info" aria-hidden="true"></i>
+                      <span className="flex-grow-1">
+                        <strong>Model / rule assessment</strong>
+                        <br />
+                        <small className="text-secondary">
+                          {phishingAnalysis.model_rule_status || 'Not available'}
+                        </small>
+                      </span>
+                    </li>
                     {topFactors.map((factor) => (
                       <li className="rule-row" key={factor}>
                         <i className="bi bi-exclamation-triangle-fill tone-warning" aria-hidden="true"></i>
@@ -522,7 +532,7 @@ function AnalysisResultPage() {
               <span className="section-eyebrow">Weighted Decision</span>
               <h2 className="result-section-title mt-2">Security Risk Breakdown</h2>
               <p className="result-section-sub mx-auto">
-                The final score combines four independent signals. Higher component scores indicate more risk.
+                Final phishing risk uses only ML probability and phishing-specific URL rules. Connection and HTTP hardening are separate dimensions.
               </p>
             </div>
           </div>
@@ -559,7 +569,7 @@ function AnalysisResultPage() {
                 <div className="d-flex justify-content-between align-items-center mb-3">
                   <div>
                     <span className="section-eyebrow">Transport</span>
-                    <h2 className="result-section-title mt-2 mb-0">TLS / SSL Security</h2>
+                    <h2 className="result-section-title mt-2 mb-0">Connection Security</h2>
                   </div>
                   <span className={`status-badge ${tlsAnalysis.available ? 'tone-success' : 'tone-warning'}`}>
                     {tlsAnalysis.available ? `${tlsAnalysis.score}/100` : 'UNAVAILABLE'}
@@ -575,6 +585,9 @@ function AnalysisResultPage() {
                 ) : (
                   <p className="text-secondary mb-0">{tlsAnalysis.error || 'No certificate details were returned.'}</p>
                 )}
+                <small className="text-secondary d-block mt-3">
+                  Phishing risk contribution: 0/100. TLS describes connection security, not website legitimacy.
+                </small>
               </div>
             </div>
             <div className="col-12 col-lg-6">
@@ -582,7 +595,7 @@ function AnalysisResultPage() {
                 <div className="d-flex justify-content-between align-items-center mb-3">
                   <div>
                     <span className="section-eyebrow">Application</span>
-                    <h2 className="result-section-title mt-2 mb-0">HTTP Security Headers</h2>
+                    <h2 className="result-section-title mt-2 mb-0">HTTP Security Hardening</h2>
                   </div>
                   <span className={`status-badge ${headerAnalysis.available ? 'tone-success' : 'tone-warning'}`}>
                     {headerAnalysis.available ? `${headerAnalysis.score}/100` : 'UNAVAILABLE'}
@@ -602,6 +615,18 @@ function AnalysisResultPage() {
                   })}
                 </ul>
                 {!headerAnalysis.available && <small className="text-secondary d-block mt-3">{headerAnalysis.error || 'Header request was unavailable.'}</small>}
+                {headerAnalysis.available && (
+                  <>
+                    <small className="text-secondary d-block mt-3">
+                      Phishing risk contribution: 0/100. Missing headers indicate weaker HTTP hardening, not phishing evidence.
+                    </small>
+                    {httpSecurity.missing_headers?.length > 0 && (
+                      <small className="text-secondary d-block mt-2">
+                        Missing: {httpSecurity.missing_headers.join(', ')}
+                      </small>
+                    )}
+                  </>
+                )}
               </div>
             </div>
           </div>
@@ -675,8 +700,8 @@ function AnalysisResultPage() {
             <div className="col-12 col-lg-8">
               <span className="section-eyebrow">Rule Analysis</span>
               <h2 className="result-section-title mt-2">Rules Checked</h2>
-              <p className="result-section-sub mx-auto">
-                Each rule was evaluated independently against the URL. Triggered rules also appear in "Detected Indicators" above.
+                <p className="result-section-sub mx-auto">
+                Each rule was evaluated independently against the URL. Only phishing-specific URL findings affect phishing risk; transport warnings remain separate.
               </p>
             </div>
           </div>

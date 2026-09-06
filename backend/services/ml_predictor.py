@@ -99,8 +99,10 @@ def predict_url(url: str) -> dict:
         return {
             "available": False,
             "prediction": None,
+            "predicted_label": None,
             "phishing_probability": None,
             "safe_probability": None,
+            "model_status": "UNAVAILABLE",
             "error": _model_load_error or "ML model not loaded",
         }
 
@@ -147,17 +149,21 @@ def predict_url(url: str) -> dict:
         return {
             "available": True,
             "prediction": prediction,
+            "predicted_label": prediction,
             "phishing_probability": round(phishing_prob, 4),
             "safe_probability": round(safe_prob, 4),
             "model_name": "pirocheto/phishing-url-detection",
+            "model_status": "AVAILABLE",
         }
 
     except Exception as exc:
         return {
             "available": False,
             "prediction": None,
+            "predicted_label": None,
             "phishing_probability": None,
             "safe_probability": None,
+            "model_status": "UNAVAILABLE",
             "error": f"ML inference failed: {exc}",
         }
 

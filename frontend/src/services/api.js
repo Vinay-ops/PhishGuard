@@ -52,6 +52,9 @@ function normalizeAnalysisResult(data) {
     ruleAnalysis: data.rule_analysis ?? {},
     connectionSecurity: data.connection_security ?? {},
     modelInfo: data.model_info ?? {},
+    phishingAnalysis: data.phishing_analysis ?? {},
+    httpSecurity: data.http_security ?? {},
+    finalAssessment: data.final_assessment ?? {},
   }
 }
 
@@ -113,6 +116,9 @@ function normalizeHistoricalRecord(record) {
     ruleAnalysis: securityAnalysis.rule_analysis ?? {},
     connectionSecurity: securityAnalysis.connection_security ?? {},
     modelInfo: securityAnalysis.model_info ?? {},
+    phishingAnalysis: securityAnalysis.phishing_analysis ?? {},
+    httpSecurity: securityAnalysis.http_security ?? {},
+    finalAssessment: securityAnalysis.final_assessment ?? {},
     scannedAt: record.scanned_at ? new Date(record.scanned_at) : null,
     isHistorical: true,
   }
