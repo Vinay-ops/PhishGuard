@@ -23,24 +23,31 @@ _DENY_NETWORKS = (
 )
 
 
-def validate_public_target(url: str) -> str:
-    """Resolve a URL hostname and reject private, local, or invalid targets."""
-    parsed = urlparse(url)
-    hostname = parsed.hostname
-    if not hostname:
-        raise SSRFViolation("URL must contain a hostname.")
+# getaddrinfo can fail with several distinct exceptions depending on the
+# runtime: gaierror (NXDOMAIN / no address), TimeoutError (slow/blocked DNS
+# on serverless runtimes), and UnicodeError (non-ASCII / punycode hostnames).
+# All are treated uniformly as "the hostname could not be resolved".
+_UNRESOLVABLE_EXCEPTIONS = (socket.gaierror, TimeoutError, UnicodeError)
 
+
+def _resolve_addresses(hostname: str):
+    """Resolve a hostname to a set of IP strings.
+
+    Returns None when the hostname cannot be resolved (NXDOMAIN, DNS
+    timeout, or a non-ASCII hostname), so callers can decide whether that
+    is a hard failure (network analyzer) or a soft one (string-only analysis).
+    """
     try:
-        addresses = {
+        return {
             result[4][0]
             for result in socket.getaddrinfo(hostname, None, type=socket.SOCK_STREAM)
         }
-    except socket.gaierror as exc:
-        raise SSRFViolation("The URL hostname could not be resolved.") from exc
+    except _UNRESOLVABLE_EXCEPTIONS:
+        return None
 
-    if not addresses:
-        raise SSRFViolation("The URL hostname has no usable address.")
 
+def _assert_public(addresses) -> None:
+    """Raise SSRFViolation if any resolved address is private/local/denied."""
     for address in addresses:
         ip = ipaddress.ip_address(address)
         if (
@@ -54,4 +61,33 @@ def validate_public_target(url: str) -> str:
         ):
             raise SSRFViolation("Requests to private or local network addresses are blocked.")
 
+
+def validate_public_target(url: str, require_resolvable: bool = True) -> str:
+    """Validate that a URL hostname may be contacted, returning the hostname.
+
+    SSRF protection is never weakened: if the hostname resolves to a
+    private/local/denied address, SSRFViolation is always raised.
+
+    require_resolvable=True (default) is used by the network analyzers. It
+    additionally rejects hostnames that cannot be resolved at all, so those
+    checks report themselves unavailable.
+
+    require_resolvable=False is used at the start of the analysis pipeline.
+    It lets unresolvable hostnames (NXDOMAIN, DNS timeout) through so the
+    URL-string analysis (ML, rules) can still run; the network analyzers then
+    mark their checks unavailable instead of aborting the whole request. An
+    unresolvable host cannot be contacted, so this creates no SSRF exposure.
+    """
+    parsed = urlparse(url)
+    hostname = parsed.hostname
+    if not hostname:
+        raise SSRFViolation("URL must contain a hostname.")
+
+    addresses = _resolve_addresses(hostname)
+    if addresses is None:
+        if require_resolvable:
+            raise SSRFViolation("The URL hostname could not be resolved.")
+        return hostname
+
+    _assert_public(addresses)
     return hostname

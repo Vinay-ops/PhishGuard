@@ -1,5 +1,7 @@
 """HTTP security header inspection for a public URL."""
 
+import http.client
+
 from urllib.error import HTTPError, URLError
 from urllib.parse import urlparse
 from urllib.request import Request, build_opener, HTTPRedirectHandler, urlopen
@@ -51,7 +53,17 @@ def analyze_headers(url: str, timeout: float = 4.0) -> dict:
                 "error": None,
                 "status_code": response.status,
             }
-    except (SSRFViolation, OSError, HTTPError, URLError, ValueError) as exc:
+    # Expected network/DNS/protocol failures are handled explicitly and
+    # surface as an unavailable check (never as phishing evidence or a crash).
+    except (
+        SSRFViolation,
+        OSError,                 # includes TimeoutError, gaierror, refused
+        HTTPError,
+        URLError,
+        http.client.HTTPException,  # malformed/incomplete HTTP responses
+        ValueError,
+        UnicodeError,            # non-ASCII hostnames
+    ) as exc:
         return {
             "available": False,
             "score": 0,

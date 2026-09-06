@@ -156,7 +156,11 @@ def analyze_url(url: str) -> dict:
     5. Combine results in risk engine
     6. Return complete analysis
     """
-    validate_public_target(url)
+    # SSRF: still block private/local addresses, but do not abort the whole
+    # analysis when a hostname is simply unresolvable (NXDOMAIN/DNS timeout).
+    # The TLS/HTTP analyzers independently enforce SSRF before connecting and
+    # report an unresolvable host as an unavailable check instead.
+    validate_public_target(url, require_resolvable=False)
 
     # Step 1: Feature extraction.
     features = extract_url_features(url)

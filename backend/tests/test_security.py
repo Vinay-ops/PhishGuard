@@ -20,6 +20,7 @@ Coverage:
 import os
 import sys
 import unittest
+import unittest.mock
 
 # Ensure the backend root is importable regardless of the CWD.
 _BACKEND = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -224,6 +225,125 @@ class TestApiValidation(unittest.TestCase):
             headers={"Origin": "https://evil.example.com", "Access-Control-Request-Method": "POST"},
         )
         self.assertIsNone(response.headers.get("access-control-allow-origin"))
+
+
+class TestUnreachableHostHandling(unittest.TestCase):
+    """Unreachable/unresolvable public hostnames must not produce a 500.
+
+    They must return a controlled analysis with the network checks marked
+    unavailable and phishing risk driven only by ML + URL rules.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        from fastapi.testclient import TestClient
+        from app.main import app
+        cls.client = TestClient(app)
+
+    def test_reachable_url_still_analyzes(self):
+        response = self.client.post("/api/v1/analyze", json={"url": "https://www.google.com/"})
+        self.assertEqual(response.status_code, 200)
+        body = response.json()
+        self.assertIn("classification", body)
+        self.assertIn("risk_score", body)
+
+    def test_original_500_url_now_controlled(self):
+        url = "https://paypal-login-verify.example.com/account/login"
+        response = self.client.post("/api/v1/analyze", json={"url": url})
+        self.assertEqual(response.status_code, 200)
+        body = response.json()
+        # Network checks unavailable, phishing risk untouched by them.
+        self.assertFalse(body["connection_security"]["available"])
+        self.assertFalse(body["http_security"]["available"])
+        self.assertEqual(body["connection_security"]["security_score"], 0)
+        self.assertEqual(body["http_security"]["hardening_score"], 0)
+        # ML still analyzed the URL string (independence from reachability).
+        ml = body["ml_analysis"]
+        self.assertTrue(ml["available"])
+        self.assertIsNotNone(ml["phishing_probability"])
+        # Risk comes from ML + URL rules only.
+        breakdown = body["risk_breakdown"]
+        self.assertIn("ml", breakdown)
+        self.assertIn("url_rules", breakdown)
+        self.assertNotIn("tls", breakdown)
+        self.assertNotIn("http", breakdown)
+
+    def test_non_resolving_hostname_returns_analysis(self):
+        url = "https://this-domain-definitely-does-not-exist-123456789.example/"
+        response = self.client.post("/api/v1/analyze", json={"url": url})
+        self.assertEqual(response.status_code, 200)
+        body = response.json()
+        self.assertFalse(body["connection_security"]["available"])
+        self.assertFalse(body["http_security"]["available"])
+        self.assertIsNotNone(body["ml_analysis"].get("phishing_probability"))
+
+    def test_loopback_still_blocked(self):
+        response = self.client.post("/api/v1/analyze", json={"url": "http://127.0.0.1/"})
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(
+            response.json()["detail"],
+            "Requests to private or local network addresses are blocked.",
+        )
+
+    def test_metadata_still_blocked(self):
+        response = self.client.post(
+            "/api/v1/analyze", json={"url": "http://169.254.169.254/latest/meta-data/"}
+        )
+        self.assertEqual(response.status_code, 400)
+
+    def test_cgnat_still_blocked(self):
+        response = self.client.post("/api/v1/analyze", json={"url": "http://100.64.0.1/"})
+        self.assertEqual(response.status_code, 400)
+
+    def test_invalid_scheme_still_blocked(self):
+        response = self.client.post("/api/v1/analyze", json={"url": "ftp://example.com/file"})
+        self.assertEqual(response.status_code, 400)
+
+
+class TestDnsFailureMechanism(unittest.TestCase):
+    """getaddrinfo failures other than gaierror (e.g. DNS timeout on
+    serverless) must be handled, not escape as an HTTP 500."""
+
+    def test_getaddrinfo_timeout_is_handled(self):
+        import socket
+        import services.risk_engine as risk_engine
+        with unittest.mock.patch(
+            "socket.getaddrinfo",
+            side_effect=TimeoutError("simulated DNS timeout"),
+        ):
+            result = risk_engine.analyze_url("https://example.com/")
+        self.assertIn("risk_score", result)
+        self.assertFalse(result["connection_security"]["available"])
+        self.assertFalse(result["http_security"]["available"])
+
+    def test_getaddrinfo_unicode_is_handled(self):
+        import socket
+        import services.risk_engine as risk_engine
+        with unittest.mock.patch(
+            "socket.getaddrinfo",
+            side_effect=UnicodeError("simulated non-ascii host"),
+        ):
+            result = risk_engine.analyze_url("https://example.com/")
+        self.assertIn("risk_score", result)
+        self.assertFalse(result["connection_security"]["available"])
+
+    def test_ssrf_blocked_when_resolution_is_internal(self):
+        from services.ssrf_protector import validate_public_target, SSRFViolation
+        import socket
+        # Hostname that resolves to a private address must still be blocked.
+        with unittest.mock.patch(
+            "socket.getaddrinfo", return_value=[(socket.AF_INET, None, 6, "", ("127.0.0.1", 0))]
+        ):
+            with self.assertRaises(SSRFViolation):
+                validate_public_target("https://evil.example.com/")
+
+    def test_ssrf_blocked_without_resolving_private(self):
+        from services.ssrf_protector import validate_public_target, SSRFViolation
+        # A literal private IP never needs DNS and is always blocked.
+        for url in ("http://10.0.0.1/", "http://192.168.1.5/", "http://[::1]/", "http://100.64.0.1/"):
+            with self.subTest(url=url):
+                with self.assertRaises(SSRFViolation):
+                    validate_public_target(url)
 
 
 if __name__ == "__main__":

@@ -40,7 +40,15 @@ def analyze_tls(url: str, timeout: float = 4.0) -> dict:
                     },
                     "error": None,
                 }
-    except (SSRFViolation, OSError, ssl.SSLError, ValueError) as exc:
+    # Expected network/DNS/certificate failures are handled explicitly and
+    # surface as an unavailable check (never as phishing evidence or a crash).
+    except (
+        SSRFViolation,
+        OSError,          # includes TimeoutError, gaierror, ConnectionRefused
+        ssl.SSLError,     # includes certificate verification failures
+        ValueError,
+        UnicodeError,     # non-ASCII hostnames
+    ) as exc:
         return {
             "available": False,
             "score": 0,

@@ -5,9 +5,12 @@ POST /api/v1/analyze — the main URL analysis endpoint.
 """
 
 import json
+import logging
 
 from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
+
+logger = logging.getLogger(__name__)
 
 from database.database import get_db
 from database.models import ScanRecord
@@ -53,6 +56,9 @@ def analyze(request: AnalyzeRequest, db: Session = Depends(get_db)):
     except SSRFViolation as exc:
         raise HTTPException(status_code=400, detail=str(exc))
     except Exception:
+        # Log the full traceback server-side for diagnosis; the client only
+        # ever receives the generic message above (no internals leaked).
+        logger.exception("Unexpected error during URL analysis for %r", url)
         raise HTTPException(
             status_code=500,
             detail="An error occurred during URL analysis.",
