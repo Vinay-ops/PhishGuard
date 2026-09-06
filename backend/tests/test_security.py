@@ -299,6 +299,23 @@ class TestUnreachableHostHandling(unittest.TestCase):
         response = self.client.post("/api/v1/analyze", json={"url": "ftp://example.com/file"})
         self.assertEqual(response.status_code, 400)
 
+    def test_analyze_route_no_500_on_dns_oserror(self):
+        """Regression: the failing URL must never surface a 500 even when
+        the resolver raises OSError(errno EBUSY) like the Vercel Lambda does."""
+        import errno
+        import socket
+        url = "https://paypal-login-verify.example.com/account/login"
+        with unittest.mock.patch(
+            "socket.getaddrinfo",
+            side_effect=OSError(errno.EBUSY, "Device or resource busy"),
+        ):
+            response = self.client.post("/api/v1/analyze", json={"url": url})
+        self.assertEqual(response.status_code, 200)
+        body = response.json()
+        self.assertFalse(body["connection_security"]["available"])
+        self.assertFalse(body["http_security"]["available"])
+        self.assertIsNotNone(body["ml_analysis"].get("phishing_probability"))
+
 
 class TestDnsFailureMechanism(unittest.TestCase):
     """getaddrinfo failures other than gaierror (e.g. DNS timeout on
@@ -326,6 +343,25 @@ class TestDnsFailureMechanism(unittest.TestCase):
             result = risk_engine.analyze_url("https://example.com/")
         self.assertIn("risk_score", result)
         self.assertFalse(result["connection_security"]["available"])
+
+    def test_getaddrinfo_oserror_ebusy_is_handled(self):
+        """Production repro: Vercel Lambda getaddrinfo raises a plain
+        OSError(errno 16, 'Device or resource busy') for unresolvable hosts.
+        This must be treated as unresolvable, never an HTTP 500."""
+        import errno
+        import socket
+        import services.risk_engine as risk_engine
+        with unittest.mock.patch(
+            "socket.getaddrinfo",
+            side_effect=OSError(errno.EBUSY, "Device or resource busy"),
+        ):
+            result = risk_engine.analyze_url(
+                "https://paypal-login-verify.example.com/account/login"
+            )
+        self.assertIn("risk_score", result)
+        self.assertFalse(result["connection_security"]["available"])
+        self.assertFalse(result["http_security"]["available"])
+        self.assertIsNotNone(result["ml_analysis"].get("phishing_probability"))
 
     def test_ssrf_blocked_when_resolution_is_internal(self):
         from services.ssrf_protector import validate_public_target, SSRFViolation

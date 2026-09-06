@@ -25,9 +25,13 @@ _DENY_NETWORKS = (
 
 # getaddrinfo can fail with several distinct exceptions depending on the
 # runtime: gaierror (NXDOMAIN / no address), TimeoutError (slow/blocked DNS
-# on serverless runtimes), and UnicodeError (non-ASCII / punycode hostnames).
-# All are treated uniformly as "the hostname could not be resolved".
-_UNRESOLVABLE_EXCEPTIONS = (socket.gaierror, TimeoutError, UnicodeError)
+# on serverless runtimes), OSError (e.g. errno 16 "Device or resource busy"
+# observed on Vercel Lambda resolvers for unresolvable hosts), and
+# UnicodeError (non-ASCII / punycode hostnames). gaierror and TimeoutError
+# are subclasses of OSError, so catching OSError covers all DNS resolution
+# failures. They are all treated uniformly as "the hostname could not be
+# resolved".
+_UNRESOLVABLE_EXCEPTIONS = (OSError, UnicodeError)
 
 
 def _resolve_addresses(hostname: str):
